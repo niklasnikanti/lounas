@@ -19,4 +19,5 @@ app.get("/lunches", async (req, res) => {
 	return res.json(lunches);
 });
 
-app.listen(port, () => console.log(`Lounas is being served at port ${port}!`));
+// app.listen(port, () => console.log(`Lounas is being served at port ${port}!`));
+app.listen($PORT, () => console.log(`Lounas is being served at port ${$PORT}!`));
