@@ -1,0 +1,47 @@
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<!-- Roboto font -->
+		<link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+
+		<!-- Material icons -->
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+		<link href="styles.css" rel="stylesheet">
+	</head>
+
+	<body>
+		<h1 class="header">
+			<button class="previous-day-btn icon-btn">
+				<i class="material-icons">keyboard_arrow_left</i>
+			</button>
+
+			<div class="center-column">
+				<span class="title">Lounas</span>
+
+				<span class="today">ladataan...</span>
+			</div>
+
+			<button class="next-day-btn icon-btn">
+				<i class="material-icons">keyboard_arrow_right</i>
+			</button>
+
+			<button class="dark-mode-btn icon-btn">
+				<i class="material-icons">wb_incandescent</i>
+			</button>
+		</h1>
+
+		<!-- Restaurants will go here -->
+		<div class="restaurants"></div>
+
+		<!-- Scripts -->
+		<script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin></script>
+  		<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin></script>
+
+  		<!-- Node modules -->
+  		<script src="moment-with-locales.min.js"></script>
+
+  		<script src="index.js"></script>
+	</body>
+</html>
