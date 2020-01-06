@@ -172,7 +172,7 @@ const setDarkMode = (mode = "light") => {
 // Init stuff.
 const init = (async () => {
 	// Set dark mode from the local storage.
-	const mode = localStorage.getItem("lounas_dark_mode");
+	const mode = localStorage.getItem("lounas_dark_mode") || "light";
 	dark_mode = mode === "dark";
 	setDarkMode(mode);
 
