@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 const lunchParser = require("./lunch_parser");
 const env = app.get("env");
 console.log("env", env);
@@ -19,5 +19,4 @@ app.get("/lunches", async (req, res) => {
 	return res.json(lunches);
 });
 
-// app.listen(port, () => console.log(`Lounas is being served at port ${port}!`));
-app.listen($PORT, () => console.log(`Lounas is being served at port ${$PORT}!`));
+app.listen(port, () => console.log(`Lounas is being served at port ${port}!`));
