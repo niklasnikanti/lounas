@@ -8,6 +8,11 @@
     --foreground-color: var(--foreground-color-light);
 }
 
+html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--theme-color) var(--background-color);
+}
+
 body {
     min-height: 100vh;
     margin: 0;
@@ -15,9 +20,6 @@ body {
     color: var(--theme-color);
     background-color: var(--background-color);
     transition: var(--background-transition);
-    scrollbar-width: thin;
-    scrollbar-width: 10px;
-    scrollbar-color: var(--theme-color);
 }
 
 .header {
@@ -128,6 +130,10 @@ body {
 	::-webkit-scrollbar {
 		display: none;
 	}
+
+    html {
+        scrollbar-width: none;
+    }
 
 	.restaurants {
 	    margin: 32px 8px;
