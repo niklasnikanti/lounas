@@ -1,6 +1,7 @@
 const moment = require("moment");
 const utils = require("./utils");
 const order = ["Iso-Huvila", "Verka", "Palmia", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
+const cached_hours = 24;
 
 // Let the lunch parsing commence!
 const lunchParser = {
@@ -56,10 +57,26 @@ const lunchParser = {
 	// Serve the lunches from the cache or fetch them.
 	async getLunches() {
 		// Lunch is cached for an hour before refetching.
-		const cache_expired = moment().isAfter(moment(this.fetched).add(24, "hours"));
+		const cache_expired = moment().isAfter(moment(this.fetched).add(cached_hours, "hours"));
  		if (!this.lunches || cache_expired) return await this.fetchLunches();
  		else return this.lunches;
 	}
 }; 
+
+// Auto fetch lunch at 10:00 each day.
+const autoFetch = async () => {
+	await lunchParser.fetchLunches();
+
+	const hours = moment().hours();
+	const minutes = moment().minutes();
+	const total_hours = hours + ( minutes / 60 );
+	console.log("auto fetch total hours", total_hours);
+
+	let timeout = 10 - total_hours;
+	if (timeout < 0) timeout = cached_hours + timeout;
+
+	setTimeout(autoFetch, timeout * 1000 * 60 * 60);
+};
+autoFetch();
 
 module.exports = lunchParser;
