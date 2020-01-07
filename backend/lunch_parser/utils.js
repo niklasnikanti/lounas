@@ -4,6 +4,7 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const sanitizeHtml = require("sanitize-html");
 const moment = require("moment");
+const date_format = "DD.MM.YYYY"
 
 const utils = {
 	// Fetch a website.
@@ -33,7 +34,7 @@ const utils = {
 
 		if (!this.dates) {
 			for (let i = 0; i < 5; i++) {
-				dates.push(moment().startOf("isoweek").add(i, "days").format("DD.MM.YYYY"));
+				dates.push(moment().startOf("isoweek").add(i, "days").format(date_format));
 			}
 		}
 
@@ -45,6 +46,11 @@ const utils = {
 		const dates = this.getWeekDates();
 
 		return dates[i];
+	},
+
+	// Parse date.
+	parseDate(string, format = "YYYY-MM-DD") {
+		return moment(string, format).format(date_format);
 	}
 };
 

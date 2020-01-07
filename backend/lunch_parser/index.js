@@ -1,5 +1,6 @@
 const moment = require("moment");
 const utils = require("./utils");
+const order = ["Iso-Huvila", "Verka", "Palmia", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
 
 // Let the lunch parsing commence!
 const lunchParser = {
@@ -38,7 +39,13 @@ const lunchParser = {
 
 		this.fetched = moment().format();
 
-		return this.lunches = lunches;
+		// Order the restaurants.
+		const ordered_lunches = {};
+		order.forEach(o => {
+			ordered_lunches[o] = lunches[o];
+		});
+
+		return this.lunches = ordered_lunches;
 	},
 
 	// Serve the lunches from the cache or fetch them.

@@ -21,6 +21,7 @@ const getPalmiaLunch = async () => {
 
 	// Parse the dishes.
 	return lunches.map((lunch, i) => {
+		const date_string = lunch.getAttribute("data-date");
 		const dish_list = Array.from(lunch.querySelectorAll("[data-meal]"));
 
 		const dishes = dish_list.map((dish_element, i) => {
@@ -36,7 +37,7 @@ const getPalmiaLunch = async () => {
 		});
 
 		return {
-			date: utils.getDate(i),
+			date: utils.parseDate(date_string),
 			dishes
 		};
 	});
