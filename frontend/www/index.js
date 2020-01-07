@@ -98,9 +98,24 @@ const setDay = async d => {
 		day_element
 	);
 
+	// Check if there is cached restaurants.
+	const lounas_cached_restaurants = localStorage.getItem("lounas_cached_restaurants");
+	const cached_restaurants = lounas_cached_restaurants ? JSON.parse(lounas_cached_restaurants) : null;
+
+	// Check if the cached restaurants is expired.
+	const expired = !cached_restaurants || moment(cached_restaurants.date).isBefore(moment().subtract(24, "hours"));
+
 	// Fetch the restaurants with lunch menus.
-	let restaurants = await fetch(`${origin}/lunches`);
-	restaurants = await restaurants.json();
+	let restaurants;
+	if (expired) {
+		restaurants = await fetch(`${origin}/lunches`);
+		restaurants = await restaurants.json();
+		restaurants.date = moment().format();
+		localStorage.setItem("lounas_cached_restaurants", JSON.stringify(restaurants));
+	} else {
+		restaurants = cached_restaurants;
+	}
+	restaurants = restaurants.data;
 
 	// Get the restaurants container.
 	const restaurant_container = document.querySelector(".restaurants");
@@ -175,6 +190,12 @@ const init = (async () => {
 	const mode = localStorage.getItem("lounas_dark_mode") || "light";
 	dark_mode = mode === "dark";
 	setDarkMode(mode);
+	setTimeout(() => {
+		document.documentElement.style.setProperty(
+			"--background-transition", 
+			"background-color cubic-bezier(0.46, 0.03, 0.52, 0.96) 0.15s"
+		);
+	}, 150);
 
 	// Set the current day.
 	setDay(selected_day.date);

@@ -14,6 +14,7 @@ else app.use(express.static("../frontend/www"));
 
 // Listen for the lunch list requests.
 app.get("/lunches", async (req, res) => {
+	console.log("get lunches"); // debug
 	let lunches = await lunchParser.getLunches();
 
 	return res.json(lunches);

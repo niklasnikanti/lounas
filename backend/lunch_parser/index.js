@@ -45,13 +45,18 @@ const lunchParser = {
 			ordered_lunches[o] = lunches[o];
 		});
 
-		return this.lunches = ordered_lunches;
+		const payload = {
+			data: ordered_lunches,
+			date: moment().format()
+		};
+
+		return this.lunches = payload;
 	},
 
 	// Serve the lunches from the cache or fetch them.
 	async getLunches() {
 		// Lunch is cached for an hour before refetching.
-		const cache_expired = moment().isAfter(moment(this.fetched).add(1, "hours"));
+		const cache_expired = moment().isAfter(moment(this.fetched).add(24, "hours"));
  		if (!this.lunches || cache_expired) return await this.fetchLunches();
  		else return this.lunches;
 	}
