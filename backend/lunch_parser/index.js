@@ -2,6 +2,10 @@ const moment = require("moment");
 const utils = require("./utils");
 const order = ["Iso-Huvila", "Verka", "Palmia", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
 const cached_hours = 24;
+const reska = require("./reska");
+const isohuvila = require("./isohuvila");
+const palmia = require("./palmia");
+const bora = require("./bora");
 
 // Let the lunch parsing commence!
 const lunchParser = {
@@ -12,10 +16,10 @@ const lunchParser = {
 
 		// Fetch the lunches.
 		const all_lunches = await Promise.all([
-			{ ...await require("./reska") },
-			{ ...await require("./isohuvila") },
-			{ ...await require("./palmia") },
-			{ ...await require("./bora") }
+			{ ...await reska.getLunch() },
+			{ ...await isohuvila.getLunch() },
+			{ ...await palmia.getLunch() },
+			{ ...await bora.getLunch() }
 		]);
 
 		all_lunches.forEach(lunch => {
@@ -60,10 +64,7 @@ const lunchParser = {
 
 	// Serve the lunches from the cache or fetch them.
 	async getLunches() {
-		// Lunch is cached for an hour before refetching.
-		const cache_expired = moment().isAfter(moment(this.fetched).add(cached_hours, "hours"));
- 		if (!this.lunches || cache_expired) return await this.fetchLunches();
- 		else return this.lunches;
+		return await this.fetchLunches();
 	}
 }; 
 

@@ -4,20 +4,23 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const sanitizeHtml = require("sanitize-html");
 const moment = require("moment");
-const date_format = "DD.MM.YYYY"
+const date_format = "DD.MM.YYYY";
+const cached_hours = 24;
 
 const utils = {
+	cached_hours,
+
 	// Fetch a website.
 	async fetch(url) {
 		const response = await axios.request({
 			method: "get",
 			url,
-			timeout: 30000
+			timeout: 4000
 		}).catch(err => {
 			console.error("Error while fetching a site", url, err);
 			return null;
 		});
-		const { data = null } = response;
+		const { data } = response || {};
 
 		// Create a virtual DOM.
 		const dom = new JSDOM(data);
@@ -27,9 +30,13 @@ const utils = {
 
 	// Clear any html from a string.
 	clearHtml(html) {
-		return sanitizeHtml(html, {
+		let sanitized_html = sanitizeHtml(html, {
 			allowedTags: []
 		});
+
+		sanizitized_html = sanitized_html.replace(/&amp;/g, "&");
+
+		return sanitized_html;
 	},
 
 	// Get the current week dates.

@@ -1,48 +1,63 @@
 const utils = require("./utils");
+const moment = require("moment");
 
-// Get Bora lunch.
-const getBoraLunch = async () => {
-	// Fetch the Bora site.
-	const dom = await utils.fetch("http://www.bora.fi");
+const bora = {
+	// Get Bora lunch.
+	async getLunch() {
+		const empty_restaurants = !this.restaurants || Object.keys(this.restaurants).some(
+			restaurant => this.restaurants[restaurant].some(lunch => !lunch.dishes.length)
+		);
+		const cache_expired = moment().isAfter(moment(this.fetched).add(utils.cached_hours, "hours"));
 
-	const lunch_container = dom.window.document.querySelector("tbody");
+		if (!empty_restaurants && !cache_expired) return this.restaurants;
 
-	const lunch_elements = Array.from(lunch_container.querySelectorAll("tr"));
-	// Remove two useless elements from the start and the end.
-	lunch_elements.splice(0, 2);
-	lunch_elements.splice(-2, 2);
+		// Fetch the Bora site.
+		const dom = await utils.fetch("http://www.bora.fi");
 
-	const lunches = [];
+		const lunch_container = dom.window.document.querySelector("tbody");
 
-	for (let i = 0; i < lunch_elements.length; i += 3) {
-		const price_element = lunch_elements[i];
+		const lunch_elements = Array.from(lunch_container.querySelectorAll("tr"));
+		// Remove two useless elements from the start and the end.
+		lunch_elements.splice(0, 2);
+		lunch_elements.splice(-2, 2);
 
-		// Parse the price (what a mess).
-		const raw_price = price_element.querySelector("td[align=right]");
-		const price = raw_price.innerHTML.replace(/<\/?strong>|&nbsp;/g, "");
+		const lunches = [];
 
-		// Parse the dish row.
-		const dish_element = lunch_elements[i + 1];
+		for (let i = 0; i < lunch_elements.length; i += 3) {
+			const price_element = lunch_elements[i];
 
-		// Get the dish element.
-		const raw_dish = dish_element.querySelector("td");
+			// Parse the price (what a mess).
+			const raw_price = price_element.querySelector("td[align=right]");
+			const price = raw_price.innerHTML.replace(/<\/?strong>|&nbsp;/g, "");
 
-		const dish_list_raw = raw_dish.innerHTML.replace(/<\/?span[^<>\/]*>/g, "");
+			// Parse the dish row.
+			const dish_element = lunch_elements[i + 1];
 
-		const dish_list = dish_list_raw.split("<br>").filter(dish => dish.length);
+			// Get the dish element.
+			const raw_dish = dish_element.querySelector("td");
 
-		const dishes = dish_list.map(dish => ({
-			name: utils.clearHtml(dish),
-			price: utils.clearHtml(price)
-		}))
+			const dish_list_raw = raw_dish.innerHTML.replace(/<\/?span[^<>\/]*>/g, "");
 
-		lunches.push({
-			date: utils.getDate(i / 3),
-			dishes
-		});
+			const dish_list = dish_list_raw.split("<br>").filter(dish => dish.length);
+
+			const dishes = dish_list.map(dish => ({
+				name: utils.clearHtml(dish),
+				price: utils.clearHtml(price)
+			}))
+
+			lunches.push({
+				date: utils.getDate(i / 3),
+				dishes
+			});
+		}
+
+		const restaurants = this.restaurants = { Bora: lunches };
+
+		this.fetched = moment().format();
+
+		return restaurants;
 	}
-
-	return { Bora: lunches };
 };
 
-module.exports = getBoraLunch();
+
+module.exports = bora;

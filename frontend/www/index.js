@@ -68,7 +68,7 @@ class Restaurant extends React.Component {
 					create(
 						"span",
 						{ className: "price" },
-						`${ dish.price || "" }\n`
+						dish.price
 					),
 
 					create("br")
@@ -108,16 +108,20 @@ const setDay = async d => {
 
 	// Check if the cached restaurants is expired.
 	const expired = !cached_restaurants || moment(cached_restaurants.date).isBefore(moment().subtract(24, "hours"));
+	const empty_restaurants = !cached_restaurants || 
+	Object.keys(cached_restaurants.data).some(
+		restaurant => cached_restaurants.data[restaurant].every(
+			lunch => !lunch.dishes.length
+		)	
+	);
 
 	// Fetch the restaurants with lunch menus.
-	let restaurants;
-	if (expired) {
+	let restaurants = cached_restaurants;
+	if (expired || empty_restaurants) {
 		restaurants = await fetch(`${origin}/lunches`);
 		restaurants = await restaurants.json();
 		restaurants.date = moment().format();
 		localStorage.setItem("lounas_cached_restaurants", JSON.stringify(restaurants));
-	} else {
-		restaurants = cached_restaurants;
 	}
 	restaurants = restaurants.data;
 
@@ -187,10 +191,6 @@ const setDarkMode = (mode = "light") => {
 
 	localStorage.setItem("lounas_dark_mode", mode);
 };
-
-(() => {
-	console.log("kikkeli");
-})();
 
 // Init stuff.
 const init = (async () => {
