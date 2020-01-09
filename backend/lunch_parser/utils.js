@@ -15,7 +15,7 @@ const utils = {
 		const response = await axios.request({
 			method: "get",
 			url,
-			timeout: 4000
+			timeout: 5000
 		}).catch(err => {
 			console.error("Error while fetching a site", url, err);
 			return null;
