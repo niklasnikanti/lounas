@@ -12,26 +12,28 @@ const getIsoHuvilaLunch = async () => {
 	lunches.shift();
 
 	// Parse the dishes.
-	return lunches.map((lunch, i) => {
-		const dish_list = Array.from(lunch.querySelectorAll("tr"));
+	return { 
+		"Iso-Huvila": lunches.map((lunch, i) => {
+			const dish_list = Array.from(lunch.querySelectorAll("tr"));
 
 
-		const dishes = dish_list.map(dish_element => {
-			const name = dish_element.querySelector(".desc").innerHTML;
+			const dishes = dish_list.map(dish_element => {
+				const name = dish_element.querySelector(".desc").innerHTML;
 
-			const price = dish_element.querySelector(".price").innerHTML;
+				const price = dish_element.querySelector(".price").innerHTML;
+
+				return {
+					name: utils.clearHtml(name),
+					price: utils.clearHtml(price)
+				};
+			});
 
 			return {
-				name: utils.clearHtml(name),
-				price: utils.clearHtml(price)
-			};
-		});
-
-		return {
-			date: utils.getDate(i),
-			dishes
-		}
-	})
+				date: utils.getDate(i),
+				dishes
+			}
+		})
+	}
 };
 
 module.exports = getIsoHuvilaLunch();

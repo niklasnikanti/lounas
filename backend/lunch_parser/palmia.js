@@ -20,27 +20,29 @@ const getPalmiaLunch = async () => {
 	const lunches = Array.from(lunch_element.querySelectorAll(".menu-list-day"));
 
 	// Parse the dishes.
-	return lunches.map((lunch, i) => {
-		const date_string = lunch.getAttribute("data-date");
-		const dish_list = Array.from(lunch.querySelectorAll("[data-meal]"));
+	return {
+		Palmia: lunches.map((lunch, i) => {
+			const date_string = lunch.getAttribute("data-date");
+			const dish_list = Array.from(lunch.querySelectorAll("[data-meal]"));
 
-		const dishes = dish_list.map((dish_element, i) => {
-			const name_element = dish_element.querySelector(".invidual-restaurant-meal-of-day");
+			const dishes = dish_list.map((dish_element, i) => {
+				const name_element = dish_element.querySelector(".invidual-restaurant-meal-of-day");
 
-			const info_element = dish_element.querySelector(".invidual-restaurant-meal-name");
+				const info_element = dish_element.querySelector(".invidual-restaurant-meal-name");
+
+				return {
+					name: utils.clearHtml(name_element.innerHTML),
+					info: utils.clearHtml(info_element.innerHTML),
+					...(i < 3 && { price: utils.clearHtml(prices[i]) })
+				};
+			});
 
 			return {
-				name: utils.clearHtml(name_element.innerHTML),
-				info: utils.clearHtml(info_element.innerHTML),
-				...(i < 3 && { price: utils.clearHtml(prices[i]) })
+				date: utils.parseDate(date_string),
+				dishes
 			};
-		});
-
-		return {
-			date: utils.parseDate(date_string),
-			dishes
-		};
-	});
+		})
+	}
 };
 
 module.exports = getPalmiaLunch();

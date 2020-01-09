@@ -3,15 +3,18 @@ const utils = require("./utils");
 // Parse lunches from Lounasreska.
 const getLounasReskaLunches = async () => {
 	// Fetch the Lounasreska site.
-	const dom = await utils.fetch("https://reska.fi/lounasreska");
+	const dom = await utils.fetch("https://reska.fi/lounasreska").catch(err => {
+		console.error("Error while fetching Reska lunches", err);
+		return null;
+	});
 
 	// Parse a Reska lunch list.
 	const parseReskaLunch = selector => {
-		const lunches = Array.from(dom.window.document.querySelectorAll(selector));
+		const lunches = dom ? Array.from(dom.window.document.querySelectorAll(selector)) : null;
 		// Remove the weekend days from the lunches.
-		lunches.splice(-2, 2);
+		if (lunches) lunches.splice(-2, 2);
 
-		return lunches.map((lunch, i) => {
+		return dom ? lunches.map((lunch, i) => {
 			const dish_list = lunch.querySelectorAll("tr");
 
 			const dishes = [];
@@ -44,7 +47,7 @@ const getLounasReskaLunches = async () => {
 				date: utils.getDate(i),
 				dishes
 			};
-		});
+		}) : [];
 	};
 
 	// Get restaurants.

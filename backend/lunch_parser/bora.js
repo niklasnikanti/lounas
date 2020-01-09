@@ -42,7 +42,7 @@ const getBoraLunch = async () => {
 		});
 	}
 
-	return lunches;
+	return { Bora: lunches };
 };
 
 module.exports = getBoraLunch();

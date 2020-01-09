@@ -7,27 +7,31 @@ const cached_hours = 24;
 const lunchParser = {
 	// Fetch the lunches from the lunch sites.
 	async fetchLunches() {
-		let lunches = this.lunches || { };
+		let lunches = this.lunches || { data: {} };
+		const timestamp = Date.now(); // debug
 
-		// Parse lunches from Lounasreska.
-	 	lunches = { ...await require("./reska") };
+		// Fetch the lunches.
+		const all_lunches = await Promise.all([
+			{ ...await require("./reska") },
+			{ ...await require("./isohuvila") },
+			{ ...await require("./palmia") },
+			{ ...await require("./bora") }
+		]);
 
-		// Get Iso-Huvila lunch.
-		lunches["Iso-Huvila"] = await require("./isohuvila");
-
-		// Get Palmia Keinusaari lunch.
-		lunches["Palmia"] = await require("./palmia");
-
-		// Get Bora lunch.
-		lunches["Bora"] = await require("./bora");
+		all_lunches.forEach(lunch => {
+			Object.keys(lunch).forEach(restaurant => {
+				lunches.data[restaurant] = lunch[restaurant];
+			});
+		});
+		console.log("fetched in", Date.now() - timestamp); // debug
 
 		// Pad empty lunches.
-		Object.keys(lunches).forEach(lunch => {
-			const restaurant = lunches[lunch];
+		Object.keys(lunches.data).forEach(lunch => {
+			const restaurant = lunches.data[lunch];
 			
 			for (let i = 0; i < 5; i++) {
 				const date = utils.getDate(i);
-				const restaurant_date = restaurant.find(r => r.date === date);
+				const restaurant_date = restaurant && restaurant.length ? restaurant.find(r => r.date === date) : null;
 
 				if (!restaurant_date) {
 					restaurant.push({
@@ -43,7 +47,7 @@ const lunchParser = {
 		// Order the restaurants.
 		const ordered_lunches = {};
 		order.forEach(o => {
-			ordered_lunches[o] = lunches[o];
+			ordered_lunches[o] = lunches.data[o];
 		});
 
 		const payload = {

@@ -11,9 +11,13 @@ const utils = {
 	async fetch(url) {
 		const response = await axios.request({
 			method: "get",
-			url
+			url,
+			timeout: 30000
+		}).catch(err => {
+			console.error("Error while fetching a site", url, err);
+			return null;
 		});
-		const { data } = response;
+		const { data = null } = response;
 
 		// Create a virtual DOM.
 		const dom = new JSDOM(data);

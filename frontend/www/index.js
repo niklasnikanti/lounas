@@ -41,8 +41,10 @@ class Restaurant extends React.Component {
 			create(
 				"span",
 				{ className: "name" },
-				this.props.name
+				`${ this.props.name }\n`
 			),
+
+			create("br"),
 
 			dishes.map((dish, i) => {
 				return create(
@@ -54,20 +56,22 @@ class Restaurant extends React.Component {
 					create(
 						"span",
 						{ className: "name" },
-						dish.name
+						`${dish.name}\n`
 					),
 
 					create(
 						"span",
 						{ className: "info" },
-						dish.info
+						`${ dish.info ? dish.info + "\n" : "" }`
 					),
 
 					create(
 						"span",
 						{ className: "price" },
-						dish.price
-					)
+						`${ dish.price || "" }\n`
+					),
+
+					create("br")
 				)
 			})
 		);
@@ -183,6 +187,10 @@ const setDarkMode = (mode = "light") => {
 
 	localStorage.setItem("lounas_dark_mode", mode);
 };
+
+(() => {
+	console.log("kikkeli");
+})();
 
 // Init stuff.
 const init = (async () => {

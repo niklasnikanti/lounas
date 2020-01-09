@@ -11,6 +11,12 @@
 html {
     scrollbar-width: thin;
     scrollbar-color: var(--theme-color) var(--background-color);
+    -moz-appearance: none;
+    -webkit-appearance: none;
+}
+
+*:focus {
+    outline: none;
 }
 
 body {
@@ -47,9 +53,11 @@ body {
     background: none;
     border: none;
     color: var(--theme-color);
-    outline: none;
+    outline: none !important;
     cursor: pointer;
     user-select: none;
+    width: 42px;
+    padding: 0 8px;
 }
 
 .icon-btn > i {
@@ -63,8 +71,9 @@ body {
 }
 
 .header .title {
-	user-select: none;
-    -webkit-text-stroke: 1px;
+    user-select: none;
+    -webkit-text-stroke: 2px;
+    letter-spacing: 1px;
 }
 
 .today {
@@ -89,6 +98,11 @@ body {
     width: calc(25vw - 117px);
     box-shadow: 0 3px 3px -2px rgba(0,0,0,.2), 0 3px 4px 0 rgba(0,0,0,.14), 0 1px 8px 0 rgba(0,0,0,.12);
     transition: var(--background-transition);
+    white-space: pre-line;
+}
+
+.restaurant > * {
+    width: 100%;
 }
 
 .restaurant > .name {
@@ -96,14 +110,21 @@ body {
     font-weight: bolder;
     margin-bottom: 16px;
     font-size: 1.4rem;
+    text-align: center;
+    letter-spacing: 0.5px;
 }
 
 .dish {
 	display: flex;
+    width: 100%;
 	flex-direction: column;
 	align-items: center;
 	margin-bottom: 12px;
     text-align: center;
+}
+
+.dish > * {
+    width: 100%;
 }
 
 .dish > .name {
