@@ -1,0 +1,9 @@
+{
+	"apps": [
+		{
+			"name": "lounas",
+			"script": "npm run start",
+			"log_date_format": "YYYY-MM-DD HH:mm:ss"
+		}
+	]
+}
