@@ -125,6 +125,8 @@ body {
 	align-items: center;
 	margin-bottom: 12px;
     text-align: center;
+    overflow: hidden;
+    overflow-wrap: break-word;
 }
 
 .dish > * {
