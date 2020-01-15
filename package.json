@@ -18,5 +18,6 @@
   "bugs": {
     "url": "https://github.com/niklasnikanti/lounas/issues"
   },
-  "homepage": "https://github.com/niklasnikanti/lounas#readme"
+  "homepage": "https://github.com/niklasnikanti/lounas#readme",
+  "dependencies": {}
 }
