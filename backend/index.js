@@ -14,22 +14,20 @@ const frontend_path = path.join("..", "frontend", "www");
 console.log("front end path", frontend_path); // debug
 
 // Open WebSocket server.
-const ws = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 8080 });
 
 // TODO: Test client - server connection.
-ws.on("open", function open() {
-	console.log("WebSocket server is open!");
-	ws.send("test message");
+wss.on("connection", function connection(ws) {
+	console.log("WebSocket connected to the server!");
+
+	ws.on("message", function incoming(message) {
+		console.log("message", message);
+	});
 });
 
-ws.on("message", function incoming(data) {
-	console.log("data", data);
-});
-
-ws.on("error", e => {
+wss.on("error", e => {
 	console.error("WebSocket error:", e);
 });
-
 
 // Serve the page.
 // if (env === "development") app.use(express.static("../frontend"));

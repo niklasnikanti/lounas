@@ -1,6 +1,6 @@
 "use strict";
 
-const create = React.createElement;
+const createElement = React.createElement;
 let dark_mode;
 
 // Set Moment locale to Finnish.
@@ -25,6 +25,73 @@ let selected_day = {
 	date: moment().format("DD.MM.YYYY")
 }; 
 
+// Open a WebSocket connection.
+class WS {
+	constructor() {
+		this.base_url = window.origin;
+		console.log("base url", this.base_url);
+
+		this.http_protocol = this.base_url.match(/^.*?(?=:)/)[0];
+		console.log("http protocol", this.http_protocol); // debug
+
+		this.ws_protocol = this.http_protocol !== "http" ? "wss" : "ws";
+
+		this.port = 8080;
+
+		this.host = this.base_url.match(/(?<=:\/\/)[^:/]*/)[0];
+		console.log("host", this.host); // debug
+
+		this.url = `${ this.ws_protocol }://${ this.host }:${ this.port }`;
+		console.log("url", this.url); // deubg
+
+		this.connect();
+	}
+
+	// Connect to the WebSocket server.
+	connect() {
+		this.ws = new WebSocket(this.url);
+
+		// Wait for the connection to be open.
+		this.ws.onopen = evt => {
+			console.log("WebSocket connection is open", evt); // debug
+
+			this.ws.send("hey");
+		};
+
+		// Listen for incoming messages from the server.
+		this.ws.onmessage = msg => {
+			console.log("msg", msg); // debug
+		};
+
+		// Listen for WebSocket connection closing.
+		this.ws.onclose = evt => {
+			console.log("WebSocket connection closed", evt); // debug
+
+			// Try to reconnect automatically.
+			this.reconnect();
+		};
+
+		// Listen for WebSocket errors.
+		this.ws.onerror = err => {
+			console.error("WebSocket error", err); // debug
+		};
+	};
+
+	// Try to reconnect to the WebSocket server.
+	reconnect() {
+		setTimeout(() => {
+			console.log("reconnect", this.ws.readyState, WebSocket.OPEN); // debug
+			if (this.ws.readyState > WebSocket.OPEN) {
+				// Connect to the WebSocket server.
+				this.connect();
+
+				// Ensure that the connection has been made.s
+				this.reconnect();
+			}
+		}, 3000);
+	};
+};
+
 // Restaurant parent element
 class Restaurant extends React.Component {
 	constructor(props) {
@@ -35,51 +102,52 @@ class Restaurant extends React.Component {
 		const lunch = this.props.lunches.find(lunch => lunch.date === selected_day.date);
 		const dishes = lunch.dishes;
 
-		return create(
+		return createElement(
 			"div",
 			{ className: "restaurant" },
-			create(
+			createElement(
 				"span",
 				{ className: "name" },
 				`${ this.props.name }\n`
 			),
 
-			create("br"),
+			createElement("br"),
 
 			dishes.map((dish, i) => {
-				return create(
+				return createElement(
 					"div",
 					{ 
 						className: "dish", 
 						key: `${ this.props.name }${ i }` 
 					},
-					create(
+					createElement(
 						"span",
 						{ className: "name" },
 						`${dish.name}\n`
 					),
 
-					create(
+					createElement(
 						"span",
 						{ className: "info" },
 						`${ dish.info ? dish.info + "\n" : "" }`
 					),
 
-					create(
+					createElement(
 						"span",
 						{ className: "price" },
 						dish.price
 					),
 
-					create("br")
+					createElement("br")
 				)
 			})
 		);
 	}
 }
 
-// Set the current day.
-const setDay = async d => {
+// Render the day.
+const renderDay = d => {
+	// Find the current day.
 	selected_day = days.find(day => day.date === d);
 
 	if (!selected_day) {
@@ -93,14 +161,21 @@ const setDay = async d => {
 	// Get the day element.
 	const day_element = document.querySelector(".today");
 
+	// Render the day element.
 	ReactDOM.render(
-		create(
+		createElement(
 			"span",
 			null,
 			`${ selected_day.name } ${ selected_day.date }`
 		),
 		day_element
 	);
+}
+
+// Set the current day.
+const setDay = async d => {
+	// Render the day.
+	renderDay(d);
 
 	// Check if there is cached restaurants.
 	const lounas_cached_restaurants = localStorage.getItem("lounas_cached_restaurants");
@@ -138,7 +213,7 @@ const setDay = async d => {
 					lunches: restaurants[key]
 				};
 
-				return create(Restaurant, restaurant);
+				return createElement(Restaurant, restaurant);
 			});
 
 			return restaurants_to_render;
@@ -220,4 +295,8 @@ const init = (async () => {
 	dark_mode_btn.onclick = toggleDarkMode;
 
 	document.body.addEventListener("keydown", keyDown);
+
+	// Init WebSocket connection.
+	const ws = new WS();
+	console.log("ws", ws); // debug
 })();
