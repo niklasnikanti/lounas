@@ -6,6 +6,8 @@
     --foreground-color-light: rgb(255, 254, 253);
     --foreground-color-dark: rgb(32, 31, 30);
     --foreground-color: var(--foreground-color-light);
+    --btn-inactive: rgb(200, 199, 198);
+    --btn-active: var(--theme-color);
 }
 
 html {
@@ -65,7 +67,7 @@ body {
 }
 
 .icon-btn > i {
-	font-size: 1.6rem;
+	font-size: 1.2rem;
 }
 
 .center-column {
@@ -94,6 +96,7 @@ body {
 .restaurant {
     display: flex;
     flex-direction: column;
+    position: relative;
     align-items: center;
     background-color: var(--foreground-color);
     margin: 0 16px 32px;
@@ -116,6 +119,22 @@ body {
     font-size: 1.4rem;
     text-align: center;
     letter-spacing: 0.5px;
+}
+
+.vote-btn-container {
+    display: flex;
+    margin-top: auto;
+}
+
+.vote-btn {
+    flex: 1;
+    width: 30px;
+    height: 30px;
+    color: var(--btn-inactive);
+}
+
+.vote-btn.active {
+    color: var(--theme-color);
 }
 
 .dish {

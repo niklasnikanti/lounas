@@ -1,14 +1,25 @@
 const moment = require("moment");
+	  moment.locale("fi");
 const utils = require("./utils");
-const order = ["Iso-Huvila", "Verka", "Palmia", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
-const cached_hours = 24;
+// The order to send back the resturants to the client.
+const order = ["Iso-Huvila", "Palmia", "Verka", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
+
+// How many hours are the restaurants cached before trying to fetch them again.
+const cached_hours = 12;
+
+// Restaurant parsers.
 const reska = require("./reska");
 const isohuvila = require("./isohuvila");
 const palmia = require("./palmia");
 const bora = require("./bora");
 
+// Restaurant votes.
+const votes = [];
+
 // Let the lunch parsing commence!
 const lunchParser = {
+	votes,
+
 	// Fetch the lunches from the lunch sites.
 	async fetchLunches() {
 		let lunches = this.lunches || { data: {} };
@@ -75,12 +86,15 @@ const autoFetch = async () => {
 	const hours = moment().hours();
 	const minutes = moment().minutes();
 	const total_hours = hours + ( minutes / 60 );
-	console.log("auto fetch total hours", total_hours);
+	console.log("auto fetch total hours", total_hours,);
 
+	// Get the timeout in hours.
 	let timeout = 10 - total_hours;
-	if (timeout < 0) timeout = cached_hours + timeout;
+	if (timeout < 0) timeout = 24 + timeout;
 
-	setTimeout(autoFetch, timeout * 1000 * 60 * 60);
+	// Ensure the timeout is at least 1 minute in milliseconds.
+	const total_timeout = Math.max(timeout * 1000 * 60 * 60, 60000);
+	setTimeout(autoFetch, total_timeout);
 };
 autoFetch();
 

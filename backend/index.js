@@ -14,14 +14,32 @@ const frontend_path = path.join("..", "frontend", "www");
 console.log("front end path", frontend_path); // debug
 
 // Open WebSocket server.
-const wss = new WebSocket.Server({ port: 8080 });
+const wss_port = env === "development" ? 80 : 433;
+const wss = new WebSocket.Server({ port: wss_port });
 
 // TODO: Test client - server connection.
 wss.on("connection", function connection(ws) {
 	console.log("WebSocket connected to the server!");
 
-	ws.on("message", function incoming(message) {
-		console.log("message", message);
+	ws.on("message", function incoming(msg) {
+		console.log("message", msg);
+
+		try {
+			const message = JSON.parse(msg);
+			console.log("parsed", message); 
+
+			if (message.vote) {
+				lunchParser.votes.push({
+					vote: message.vote,
+					restaurant: message.restaurant,
+					who: message.who
+				});
+
+				console.log("votes", lunchParser.votes); // debug
+			}
+		} catch(e) {
+			console.error("Error while parsing message", e);
+		}
 	});
 });
 

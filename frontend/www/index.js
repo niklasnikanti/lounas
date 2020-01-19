@@ -25,6 +25,8 @@ let selected_day = {
 	date: moment().format("DD.MM.YYYY")
 }; 
 
+let ws;
+
 // Open a WebSocket connection.
 class WS {
 	constructor() {
@@ -36,12 +38,10 @@ class WS {
 
 		this.ws_protocol = this.http_protocol !== "http" ? "wss" : "ws";
 
-		this.port = 8080;
-
 		this.host = this.base_url.match(/(?<=:\/\/)[^:/]*/)[0];
 		console.log("host", this.host); // debug
 
-		this.url = `${ this.ws_protocol }://${ this.host }:${ this.port }`;
+		this.url = `${ this.ws_protocol }://${ this.host }`;
 		console.log("url", this.url); // deubg
 
 		this.connect();
@@ -55,7 +55,7 @@ class WS {
 		this.ws.onopen = evt => {
 			console.log("WebSocket connection is open", evt); // debug
 
-			this.ws.send("hey");
+			this.ws.send(JSON.stringify({ msg: "hey" }));
 		};
 
 		// Listen for incoming messages from the server.
@@ -90,6 +90,24 @@ class WS {
 			}
 		}, 3000);
 	};
+
+	// Upvote restaurant.
+	upvote(restaurant) {
+		this.ws.send(JSON.stringify({
+			restaurant,
+			vote: 1,
+			who: "me"
+		}))
+	};
+
+	// Downvote restaurant.
+	downvote(restaurant) {
+		this.ws.send(JSON.stringify({
+			restaurant,
+			vote: -1,
+			who: "me"
+		}))
+	}
 };
 
 // Restaurant parent element
@@ -99,6 +117,7 @@ class Restaurant extends React.Component {
 	}
 
 	render() {
+		// Get restaurant dishes for the day.
 		const lunch = this.props.lunches.find(lunch => lunch.date === selected_day.date);
 		const dishes = lunch.dishes;
 
@@ -114,34 +133,111 @@ class Restaurant extends React.Component {
 			createElement("br"),
 
 			dishes.map((dish, i) => {
-				return createElement(
-					"div",
-					{ 
-						className: "dish", 
-						key: `${ this.props.name }${ i }` 
-					},
-					createElement(
-						"span",
-						{ className: "name" },
-						`${dish.name}\n`
-					),
+				return createElement(Dish, {
+					key:  `${ this.props.name }${ i }`,
+					name: dish.name,
+					info: dish.info,
+					price: dish.price
+				})
+			}),
 
-					createElement(
-						"span",
-						{ className: "info" },
-						`${ dish.info ? dish.info + "\n" : "" }`
-					),
-
-					createElement(
-						"span",
-						{ className: "price" },
-						dish.price
-					),
-
-					createElement("br")
+			// Create vote buttons.
+			createElement(
+				"div",
+				{ className: "vote-btn-container" },
+				createElement(
+					VoteButton, 
+					{ name: this.props.name, type: "up", id: `${ this.props.name }-vote-up` }
+				),
+				createElement(
+					VoteButton, 
+					{ name: this.props.name, type: "down", id: `${ this.props.name }-vote-down` }
 				)
-			})
+			)
 		);
+	}
+}
+
+// Dish element for a restaurant.
+class Dish extends Restaurant {
+	constructor(props) {
+		super(props)
+	}
+
+	render() {
+		return createElement(
+			"div",
+			{ 
+				className: "dish", 
+				key: this.props.key 
+			},
+			createElement(
+				"span",
+				{ className: "name" },
+				`${ this.props.name }\n`
+			),
+
+			createElement(
+				"span",
+				{ className: "info" },
+				`${ this.props.info ? this.props.info + "\n" : "" }`
+			),
+
+			createElement(
+				"span",
+				{ className: "price" },
+				this.props.price
+			),
+
+			createElement("br")
+		)
+	}
+}
+
+// Vote button for a restaurant.
+class VoteButton extends Restaurant {
+	constructor(props) {
+		super(props);
+
+		this.vote = () => {
+			this.props.active = !this.props.active;
+			console.log("vote", this); // debug
+
+			if (this.props.type === "up") this.upvote();
+			else this.downvote();
+
+			// Get the button element.
+			const element = document.getElementById(this.props.id);
+			if (this.props.active) element.classList.add("active");
+			else element.classList.remove("active");
+		}
+
+		this.upvote = () => {
+			upvote(this.props.name);
+		};
+
+		this.downvote = () => {
+			downvote(this.props.name);
+		};
+	}
+
+	render() {
+		console.log("rendering vote button", this.props); // debug
+
+		// Create a vote button.
+		return createElement(
+			"button",
+			{ 
+				className: `vote-btn ${ this.props.type } icon-btn`, 
+				id: this.props.id,
+				onClick: this.vote
+			},
+			createElement(
+				"i",
+				{ className: "material-icons" },
+				`thumb_${ this.props.type }`
+			)
+		)
 	}
 }
 
@@ -170,7 +266,7 @@ const renderDay = d => {
 		),
 		day_element
 	);
-}
+};
 
 // Set the current day.
 const setDay = async d => {
@@ -182,17 +278,11 @@ const setDay = async d => {
 	const cached_restaurants = lounas_cached_restaurants ? JSON.parse(lounas_cached_restaurants) : null;
 
 	// Check if the cached restaurants is expired.
-	const expired = !cached_restaurants || moment(cached_restaurants.date).isBefore(moment().subtract(24, "hours"));
-	const empty_restaurants = !cached_restaurants || 
-	Object.keys(cached_restaurants.data).some(
-		restaurant => cached_restaurants.data[restaurant].every(
-			lunch => !lunch.dishes.length
-		)	
-	);
+	const expired = !cached_restaurants || moment(cached_restaurants.date).isBefore(moment().subtract(1, "hours"));
 
 	// Fetch the restaurants with lunch menus.
 	let restaurants = cached_restaurants;
-	if (expired || empty_restaurants) {
+	if (expired) {
 		restaurants = await fetch(`${origin}/lunches`);
 		restaurants = await restaurants.json();
 		restaurants.date = moment().format();
@@ -267,6 +357,18 @@ const setDarkMode = (mode = "light") => {
 	localStorage.setItem("lounas_dark_mode", mode);
 };
 
+const upvote = restaurant => {
+	console.log("upvote", restaurant); // debug
+
+	ws.upvote(restaurant);
+};
+
+const downvote = restaurant => {
+	console.log("downvote", restaurant); // debug
+
+	ws.downvote(restaurant);
+}
+
 // Init stuff.
 const init = (async () => {
 	// Set dark mode from the local storage.
@@ -297,6 +399,6 @@ const init = (async () => {
 	document.body.addEventListener("keydown", keyDown);
 
 	// Init WebSocket connection.
-	const ws = new WS();
+	ws = new WS();
 	console.log("ws", ws); // debug
 })();
