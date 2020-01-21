@@ -33,7 +33,7 @@ class Restaurant extends React.Component {
 
 	render() {
 		const lunch = this.props.lunches.find(lunch => lunch.date === selected_day.date);
-		const dishes = lunch.dishes;
+		const dishes = lunch ? lunch.dishes : [];
 
 		return create(
 			"div",

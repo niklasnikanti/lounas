@@ -43,6 +43,8 @@ const isohuvila = {
 			})
 		};
 
+		this.fetched = moment().format();
+
 		// Parse the dishes.
 		return restaurants;
 	}
