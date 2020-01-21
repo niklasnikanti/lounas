@@ -1,20 +1,13 @@
 const utils = require("./utils");
-const moment = require("moment");
 
 const isohuvila = {
 	// Get Iso-Huvila lunch.
 	async getLunch() {
-		const empty_restaurants = !this.restaurants || Object.keys(this.restaurants).some(
-			restaurant => this.restaurants[restaurant].some(lunch => !lunch.dishes.length)
-		);
-		const cache_expired = moment().isAfter(moment(this.fetched).add(utils.cached_hours, "hours"));
-
-		if (!empty_restaurants && !cache_expired) return this.restaurants;
-
 		// Fetch the Iso-Huvila site.
-		const dom = await utils.fetch("https://verkatehdas.fi/ravintola/lounas");
+		const result = await utils.fetch(this, "https://verkatehdas.fi/ravintola/lounas");
+		if (result.cached) return this.restaurants;
 
-		const lunch_element = dom.window.document.querySelector(".lunch-browser");
+		const lunch_element = result.page.querySelector(".lunch-browser");
 
 		const lunches = Array.from(lunch_element.querySelectorAll("table"));
 		// Remove the first element because it is the current day lunch already in the array.
@@ -43,12 +36,9 @@ const isohuvila = {
 			})
 		};
 
-		this.fetched = moment().format();
-
 		// Parse the dishes.
 		return restaurants;
 	}
 };
-
 
 module.exports = isohuvila;

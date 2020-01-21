@@ -1,21 +1,14 @@
 const utils = require("./utils");
-const moment = require("moment");
 
 const palmia = {
 	// Get Palmia Keinusaari lunch.
 	async getLunch() {
-		const empty_restaurants = !this.restaurants || Object.keys(this.restaurants).some(
-			restaurant => this.restaurants[restaurant].some(lunch => !lunch.dishes.length)
-		);
-		const cache_expired = moment().isAfter(moment(this.fetched).add(utils.cached_hours, "hours"));
-
-		if (!empty_restaurants && !cache_expired) return this.restaurants;
-
 		// Fetch the Palmia Keinusaari site.
-		const dom = await utils.fetch("https://ruoka.palmia.fi/fi/ravintola/ravintola/keinusaari");
+		const result = await utils.fetch(this, "https://ruoka.palmia.fi/fi/ravintola/ravintola/keinusaari");
+		if (result.cached) return this.restaurants;
 
 		// Parse the prices.
-		const price_element = dom.window.document.querySelector(".invidual-restaurant-lead-paragraph");
+		const price_element = result.page.querySelector(".invidual-restaurant-lead-paragraph");
 		const price_strings = ["päivän kotiruoka", "keittolounas", "salaattilounas"];
 
 		const prices = price_strings.map(price_string => {
@@ -25,7 +18,7 @@ const palmia = {
 		});
 
 		// Parse the lunches.
-		const lunch_element = dom.window.document.querySelector(".invidual-restaurant-menu-list-week");
+		const lunch_element = result.page.querySelector(".invidual-restaurant-menu-list-week");
 		const lunches = Array.from(lunch_element.querySelectorAll(".menu-list-day"));
 
 		const restaurants = this.restaurants = {
@@ -51,8 +44,6 @@ const palmia = {
 				};
 			})
 		};
-
-		this.fetched = moment().format();
 
 		// Parse the dishes.
 		return restaurants;
