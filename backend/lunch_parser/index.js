@@ -1,7 +1,6 @@
 const moment = require("moment");
 const utils = require("./utils");
 const order = ["Iso-Huvila", "Verka", "Palmia", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
-const cached_hours = 24;
 const reska = require("./reska");
 const isohuvila = require("./isohuvila");
 const palmia = require("./palmia");
@@ -78,7 +77,7 @@ const autoFetch = async () => {
 	console.log("auto fetch total hours", total_hours);
 
 	let timeout = 10 - total_hours;
-	if (timeout < 0) timeout = cached_hours + timeout;
+	if (timeout < 0) timeout = 24 + timeout;
 
 	setTimeout(autoFetch, timeout * 1000 * 60 * 60);
 };

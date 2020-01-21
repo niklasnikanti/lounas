@@ -5,7 +5,7 @@ const { JSDOM } = jsdom;
 const sanitizeHtml = require("sanitize-html");
 const moment = require("moment");
 const date_format = "DD.MM.YYYY";
-const cached_hours = 24;
+const cached_hours = 12;
 
 const utils = {
 	cached_hours,
