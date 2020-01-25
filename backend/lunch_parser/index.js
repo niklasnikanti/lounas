@@ -1,6 +1,7 @@
 const moment = require("moment");
 	  moment.locale("fi");
 const utils = require("./utils");
+
 // The order to send back the resturants to the client.
 const order = ["Iso-Huvila", "Palmia", "Verka", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
 

@@ -1,29 +1,22 @@
 const utils = require("./utils");
-const moment = require("moment");
 
 const reska = {
 	// Parse lunches from Lounasreska.
 	async getLunch() {
-		const empty_restaurants = !this.restaurants || Object.keys(this.restaurants).some(
-			restaurant => this.restaurants[restaurant].some(lunch => !lunch.dishes.length)
-		);
-		const cache_expired = moment().isAfter(moment(this.fetched).add(utils.cached_hours, "hours"));
-
-		if (!empty_restaurants && !cache_expired) return this.restaurants;
-
 		// Fetch the Lounasreska site.
-		const dom = await utils.fetch("https://reska.fi/lounasreska").catch(err => {
+		const result = await utils.fetch(this, "https://reska.fi/lounasreska").catch(err => {
 			console.error("Error while fetching Reska lunches", err);
 			return null;
 		});
+		if (result.cached) return this.restaurants;
 
 		// Parse a Reska lunch list.
 		const parseReskaLunch = selector => {
-			const lunches = dom ? Array.from(dom.window.document.querySelectorAll(selector)) : null;
+			const lunches = result.page ? Array.from(result.page.querySelectorAll(selector)) : null;
 			// Remove the weekend days from the lunches.
 			if (lunches) lunches.splice(-2, 2);
 
-			return dom ? lunches.map((lunch, i) => {
+			return result.page ? lunches.map((lunch, i) => {
 				const dish_list = lunch.querySelectorAll("tr");
 
 				const dishes = [];
@@ -67,8 +60,6 @@ const reska = {
 			Verka: parseReskaLunch(".ravintola-verka"),
 			Pannu: parseReskaLunch(".cafe-pannu")
 		};
-
-		this.fetched = moment().format();
 
 		return restaurants;
 	}

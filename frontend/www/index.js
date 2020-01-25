@@ -119,7 +119,7 @@ class Restaurant extends React.Component {
 	render() {
 		// Get restaurant dishes for the day.
 		const lunch = this.props.lunches.find(lunch => lunch.date === selected_day.date);
-		const dishes = lunch.dishes;
+		const dishes = lunch ? lunch.dishes : [];
 
 		return createElement(
 			"div",
@@ -274,8 +274,8 @@ const setDay = async d => {
 	renderDay(d);
 
 	// Check if there is cached restaurants.
-	const lounas_cached_restaurants = localStorage.getItem("lounas_cached_restaurants");
-	const cached_restaurants = lounas_cached_restaurants ? JSON.parse(lounas_cached_restaurants) : null;
+	let cached_restaurants = localStorage.getItem("cached_restaurants");
+	cached_restaurants = cached_restaurants ? JSON.parse(cached_restaurants) : null;
 
 	// Check if the cached restaurants is expired.
 	const expired = !cached_restaurants || moment(cached_restaurants.date).isBefore(moment().subtract(1, "hours"));
@@ -286,7 +286,7 @@ const setDay = async d => {
 		restaurants = await fetch(`${origin}/lunches`);
 		restaurants = await restaurants.json();
 		restaurants.date = moment().format();
-		localStorage.setItem("lounas_cached_restaurants", JSON.stringify(restaurants));
+		localStorage.setItem("cached_restaurants", JSON.stringify(restaurants));
 	}
 	restaurants = restaurants.data;
 
@@ -354,7 +354,7 @@ const setDarkMode = (mode = "light") => {
 	document.documentElement.style.setProperty("--background-color", `var(--background-color-${ mode }`);
 	document.documentElement.style.setProperty("--foreground-color", `var(--foreground-color-${ mode }`);
 
-	localStorage.setItem("lounas_dark_mode", mode);
+	localStorage.setItem("dark_mode", mode);
 };
 
 const upvote = restaurant => {
@@ -372,7 +372,7 @@ const downvote = restaurant => {
 // Init stuff.
 const init = (async () => {
 	// Set dark mode from the local storage.
-	const mode = localStorage.getItem("lounas_dark_mode") || "light";
+	const mode = localStorage.getItem("dark_mode") || "light";
 	dark_mode = mode === "dark";
 	setDarkMode(mode);
 	setTimeout(() => {

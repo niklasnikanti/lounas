@@ -5,13 +5,21 @@ const { JSDOM } = jsdom;
 const sanitizeHtml = require("sanitize-html");
 const moment = require("moment");
 const date_format = "DD.MM.YYYY";
-const cached_hours = 24;
+const cached_hours = 12;
 
 const utils = {
 	cached_hours,
 
 	// Fetch a website.
-	async fetch(url) {
+	async fetch(parser, url) {
+		const cache_expired = parser.fetched ? moment().isAfter(moment(parser.fetched).add(cached_hours, "hours")) : true;
+		console.log("cache expired", cache_expired, url);
+
+		if (!cache_expired) return {
+			cached: true,
+			restaurants: parser.restaurants
+		};
+
 		const response = await axios.request({
 			method: "get",
 			url,
@@ -25,7 +33,13 @@ const utils = {
 		// Create a virtual DOM.
 		const dom = new JSDOM(data);
 
-		return dom;
+		// Add the fetch timestamp to the parser.
+		parser.fetched = moment().format();
+
+		// Return the fetched page as a HTML document.
+		return {
+			page: dom.window.document
+		};
 	},
 
 	// Clear any html from a string.

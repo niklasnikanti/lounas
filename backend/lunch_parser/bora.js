@@ -1,20 +1,13 @@
 const utils = require("./utils");
-const moment = require("moment");
 
 const bora = {
 	// Get Bora lunch.
 	async getLunch() {
-		const empty_restaurants = !this.restaurants || Object.keys(this.restaurants).some(
-			restaurant => this.restaurants[restaurant].some(lunch => !lunch.dishes.length)
-		);
-		const cache_expired = moment().isAfter(moment(this.fetched).add(utils.cached_hours, "hours"));
-
-		if (!empty_restaurants && !cache_expired) return this.restaurants;
-
 		// Fetch the Bora site.
-		const dom = await utils.fetch("http://www.bora.fi");
+		const result = await utils.fetch(this, "http://www.bora.fi");
+		if (result.cached) return this.restaurants;
 
-		const lunch_container = dom.window.document.querySelector("tbody");
+		const lunch_container = result.page.querySelector("tbody");
 
 		const lunch_elements = Array.from(lunch_container.querySelectorAll("tr"));
 		// Remove two useless elements from the start and the end.
@@ -52,8 +45,6 @@ const bora = {
 		}
 
 		const restaurants = this.restaurants = { Bora: lunches };
-
-		this.fetched = moment().format();
 
 		return restaurants;
 	}
