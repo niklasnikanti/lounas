@@ -38,7 +38,7 @@ class WS {
 
 		this.ws_protocol = this.http_protocol !== "http" ? "wss" : "ws";
 
-		this.host = this.base_url.match(/(?<=:\/\/)[^:/]*/)[0];
+		this.host = this.base_url.match(/\/\/([^:\/]*)/)[1];
 		console.log("host", this.host); // debug
 
 		this.url = `${ this.ws_protocol }://${ this.host }`;
@@ -61,6 +61,25 @@ class WS {
 		// Listen for incoming messages from the server.
 		this.ws.onmessage = msg => {
 			console.log("msg", msg); // debug
+
+			// Try to parse the message.
+			const data = JSON.parse(msg.data);
+			console.log("data", data); // debug
+
+			if (data.uid) {
+				console.log("contains uid", data.uid); // debug
+
+				// Check if uid already exists.
+				const uid = localStorage.getItem("uid");
+				console.log("uid", uid);
+
+				// Set uid if it doesn't exist.
+				if (!uid) {
+					// Store uid locally.
+					localStorage.setItem("uid", data.uid);
+				}
+				
+			}
 		};
 
 		// Listen for WebSocket connection closing.
@@ -93,20 +112,40 @@ class WS {
 
 	// Upvote restaurant.
 	upvote(restaurant) {
+		const uid = localStorage.getItem("uid");
+		console.log("upvote", restaurant, "uid", uid); // debug
+
 		this.ws.send(JSON.stringify({
+			type: "vote",
 			restaurant,
 			vote: 1,
-			who: "me"
-		}))
+			uid
+		}));
 	};
 
 	// Downvote restaurant.
 	downvote(restaurant) {
+		const uid = localStorage.getItem("uid");
+		console.log("downvote", restaurant, "uid", uid); // debug
+
 		this.ws.send(JSON.stringify({
+			type: "vote",
 			restaurant,
 			vote: -1,
-			who: "me"
-		}))
+			uid
+		}));
+	};
+
+	// Remove upvote from restaurant.
+	removeVote(restaurant) {
+		const uid = localStorage.getItem("uid");
+		console.log("remove vote", restaurant, "uid", uid); // debug
+
+		this.ws.send(JSON.stringify({
+			type: "remove_vote",
+			restaurant,
+			uid
+		}));
 	}
 };
 
@@ -203,13 +242,23 @@ class VoteButton extends Restaurant {
 			this.props.active = !this.props.active;
 			console.log("vote", this); // debug
 
-			if (this.props.type === "up") this.upvote();
-			else this.downvote();
+			if (this.props.type === "up") {
+				if (this.props.active) this.upvote();
+				else this.removeVote();
+			}
+			else {
+				if (this.props.active) this.downvote();
+				else this.removeVote();
+			}
 
 			// Get the button element.
 			const element = document.getElementById(this.props.id);
 			if (this.props.active) element.classList.add("active");
 			else element.classList.remove("active");
+
+			// TODO: Sync frontend voting with the backend.
+			// eg. If restaurant is already upvoted and then downvoted, remove the upvote in the frontend.
+			// eg. If the user has already 2 votes and voting, remove the oldest vote.
 		}
 
 		this.upvote = () => {
@@ -219,6 +268,10 @@ class VoteButton extends Restaurant {
 		this.downvote = () => {
 			downvote(this.props.name);
 		};
+
+		this.removeVote = () => {
+			removeVote(this.props.name);
+		}
 	}
 
 	render() {
@@ -357,17 +410,23 @@ const setDarkMode = (mode = "light") => {
 	localStorage.setItem("dark_mode", mode);
 };
 
+// Upvote restaurant.
 const upvote = restaurant => {
 	console.log("upvote", restaurant); // debug
-
 	ws.upvote(restaurant);
 };
 
+// Downvote restaurant.
 const downvote = restaurant => {
 	console.log("downvote", restaurant); // debug
-
 	ws.downvote(restaurant);
-}
+};
+
+// Remove vote from restaurant.
+const removeVote = restaurant => {
+	console.log("remove vote", restaurant); // debug
+	ws.removeVote(restaurant);
+};
 
 // Init stuff.
 const init = (async () => {
