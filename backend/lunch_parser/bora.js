@@ -50,5 +50,4 @@ const bora = {
 	}
 };
 
-
 module.exports = bora;

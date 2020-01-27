@@ -107,7 +107,7 @@ const setDay = async d => {
 	cached_restaurants = cached_restaurants ? JSON.parse(cached_restaurants) : null;
 
 	// Check if the cached restaurants is expired.
-	const expired = !cached_restaurants || moment(cached_restaurants.date).isBefore(moment().subtract(1, "hours"));
+	const expired = !cached_restaurants || moment().isAfter(moment(cached_restaurants.date).add(1, "hours"));
 
 	// Fetch the restaurants with lunch menus.
 	let restaurants = cached_restaurants;

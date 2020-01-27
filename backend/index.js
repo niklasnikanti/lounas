@@ -9,7 +9,6 @@ console.log("env", env);
 // Security best practices.
 app.disable("x-powered-by");
 
-
 const frontend_path = path.join("..", "/frontend", "/www");
 console.log("front end path", frontend_path); // debug
 
