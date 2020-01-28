@@ -14,6 +14,7 @@ app.disable("x-powered-by");
 vote.init(env);
 
 const frontend_path = path.join("..", "frontend", "www");
+
 console.log("front end path", frontend_path); // debug
 
 // Serve the app.

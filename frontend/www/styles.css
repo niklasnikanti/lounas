@@ -25,6 +25,10 @@ br {
     outline: none;
 }
 
+*::-moz-focus-inner {
+    border: none;
+}
+
 body {
     min-height: 100vh;
     margin: 0;

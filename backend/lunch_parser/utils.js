@@ -4,6 +4,7 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const sanitizeHtml = require("sanitize-html");
 const moment = require("moment");
+	  moment.locale("fi");
 const date_format = "DD.MM.YYYY";
 const cached_hours = 12;
 
@@ -13,7 +14,7 @@ const utils = {
 	// Fetch a website.
 	async fetch(parser, url) {
 		const cache_expired = parser.fetched ? moment().isAfter(moment(parser.fetched).add(cached_hours, "hours")) : true;
-		console.log("cache expired", cache_expired, url);
+		console.log("cache expired", cache_expired, url, "fetched", parser.fetched); // debug
 
 		if (!cache_expired) return {
 			cached: true,

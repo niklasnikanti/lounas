@@ -17,7 +17,6 @@ const isohuvila = {
 			"Iso-Huvila": lunches.map((lunch, i) => {
 				const dish_list = Array.from(lunch.querySelectorAll("tr"));
 
-
 				const dishes = dish_list.map(dish_element => {
 					const name = dish_element.querySelector(".desc").innerHTML;
 
