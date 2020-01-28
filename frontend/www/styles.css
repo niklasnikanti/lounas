@@ -74,6 +74,10 @@ body {
 	font-size: 1.2rem;
 }
 
+.icon-btn.day > i {
+    font-size: 1.6rem;
+}
+
 .center-column {
 	display: flex;
 	flex-direction: column;

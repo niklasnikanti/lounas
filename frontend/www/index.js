@@ -27,6 +27,8 @@ let selected_day = {
 
 let ws;
 
+let votes = [];
+
 // Open a WebSocket connection.
 class WS {
 	constructor() {
@@ -238,23 +240,55 @@ class VoteButton extends Restaurant {
 	constructor(props) {
 		super(props);
 
+		this.state = {};
+
 		this.vote = () => {
-			this.props.active = !this.props.active;
+			const active = !this.state.active;
 			console.log("vote", this); // debug
 
 			if (this.props.type === "up") {
-				if (this.props.active) this.upvote();
+				if (active) this.upvote();
 				else this.removeVote();
 			}
 			else {
-				if (this.props.active) this.downvote();
+				if (active) this.downvote();
 				else this.removeVote();
 			}
 
-			// Get the button element.
-			const element = document.getElementById(this.props.id);
-			if (this.props.active) element.classList.add("active");
-			else element.classList.remove("active");
+			const new_vote = {
+				vote: this.props.type === "up" ? 1 : -1,
+				restaurant: this.props.name,
+				timestamp: Date.now(),
+				id: this.props.id
+			};
+
+			const i = votes.findIndex(vote => vote.restaurant === new_vote.restaurant);
+			console.log("i", i); // debug
+
+			const existing_vote = votes[i];
+			console.log("existing vote", existing_vote); // debug
+			if (existing_vote) {
+				// Find the vote button element.
+				// const element = document.getElementById(existing_vote.id);
+				// console.log("element", element); // debug
+
+				// element.classList.remove("active");
+				votes.splice(i, 1);
+			}
+
+			// If this vote is active, add it to the votes.
+			if (active) {
+				votes.push(new_vote);
+			}
+
+			console.log("votes", votes); // debug
+
+			// const element = document.getElementById(this.props.id);
+			// if (active) element.classList.add("active");
+			// else element.classList.remove("active");
+
+			// Set the button's state.
+			this.setState({ active });
 
 			// TODO: Sync frontend voting with the backend.
 			// eg. If restaurant is already upvoted and then downvoted, remove the upvote in the frontend.
@@ -281,7 +315,7 @@ class VoteButton extends Restaurant {
 		return createElement(
 			"button",
 			{ 
-				className: `vote-btn ${ this.props.type } icon-btn`, 
+				className: `vote-btn ${ this.props.type } ${ this.state.active ? "active" : "" } icon-btn`, 
 				id: this.props.id,
 				onClick: this.vote
 			},
@@ -336,7 +370,7 @@ const setDay = async d => {
 	// Fetch the restaurants with lunch menus.
 	let restaurants = cached_restaurants;
 	if (expired) {
-		restaurants = await fetch(`${origin}/lunches`);
+		restaurants = await fetch("/lunches");
 		restaurants = await restaurants.json();
 		restaurants.date = moment().format();
 		localStorage.setItem("cached_restaurants", JSON.stringify(restaurants));
@@ -359,6 +393,7 @@ const setDay = async d => {
 				return createElement(Restaurant, restaurant);
 			});
 
+			console.log("restaurants to render", restaurants_to_render); // debug
 			return restaurants_to_render;
 		})(),
 
@@ -445,10 +480,10 @@ const init = (async () => {
 	setDay(selected_day.date);
 
 	// Bind the previous and next day buttons to the day changing functions.
-	const previous_btn = document.querySelector(".previous-day-btn");
+	const previous_btn = document.querySelector(".previous.day");
 	previous_btn.onclick = getPreviousDay;
 
-	const next_btn = document.querySelector(".next-day-btn");
+	const next_btn = document.querySelector(".next.day");
 	next_btn.onclick = getNextDay;
 
 	// Bind the dark mode button.
