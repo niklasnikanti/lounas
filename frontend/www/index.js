@@ -112,42 +112,57 @@ class WS {
 		}, 3000);
 	};
 
-	// Upvote restaurant.
-	upvote(restaurant) {
+	// Vote restaurant.
+	vote(restaurant, vote) {
+		// TODO: Sync frontend voting with the backend.
+		// eg. If restaurant is already upvoted and then downvoted, replace the restaurant's vote in the frontend.
+		// eg. If the user has already 2 votes and voting, remove the oldest vote.
 		const uid = localStorage.getItem("uid");
-		console.log("upvote", restaurant, "uid", uid); // debug
+		console.log("vote", restaurant, vote, "uid", uid); // debug
 
-		this.ws.send(JSON.stringify({
-			type: "vote",
-			restaurant,
-			vote: 1,
-			uid
-		}));
-	};
+		if (vote) {
+			// Check if the user already has two votes and remove the oldest one if they do.
+			// TODO: Make the UI reflect this. Possibly need to create a parent element for all restaurants? 
+			// Or make the restaurant element check the votes array?
+			if (votes.length === 2) votes.shift();
 
-	// Downvote restaurant.
-	downvote(restaurant) {
-		const uid = localStorage.getItem("uid");
-		console.log("downvote", restaurant, "uid", uid); // debug
+			// Find the index of the vote within the votes.
+			const i = votes.findIndex(vote => vote.restaurant === restaurant);
+			console.log("i", i); // debug
 
-		this.ws.send(JSON.stringify({
-			type: "vote",
-			restaurant,
-			vote: -1,
-			uid
-		}));
-	};
+			const existing_vote = votes[i];
+			console.log("existing vote", existing_vote); // debug
+			if (existing_vote) votes.splice(i, 1);
 
-	// Remove upvote from restaurant.
-	removeVote(restaurant) {
-		const uid = localStorage.getItem("uid");
-		console.log("remove vote", restaurant, "uid", uid); // debug
+			// Create a new vote.
+			const new_vote = {
+				type: "vote",
+				restaurant,
+				vote: vote === "up" ? 1 : -1,
+				uid,
+				timestamp: Date.now()
+			};
 
-		this.ws.send(JSON.stringify({
-			type: "remove_vote",
-			restaurant,
-			uid
-		}));
+			// If this vote is active, add it to the votes.
+			votes.push(new_vote);
+
+			// Up/down-vote
+			this.ws.send(JSON.stringify(new_vote));
+		} else {
+			const i = votes.findIndex(vote => vote.restaurant === restaurant);
+			console.log("i", i); // debug
+
+			if (i > -1) votes.splice(i, 1);
+
+			// Unvote
+			this.ws.send(JSON.stringify({
+				type: "remove_vote",
+				restaurant,
+				uid
+			}));
+		}
+
+		console.log("votes", votes); // debug
 	}
 };
 
@@ -155,6 +170,20 @@ class WS {
 class Restaurant extends React.Component {
 	constructor(props) {
 		super(props);
+
+		this.state = {};
+
+		this.vote = this.vote.bind(this);
+	}
+
+	vote(v) {
+		const vote = this.state.vote !== v ? v : null;
+		console.log("vote", vote, this.props.name); // debug
+
+		// Send the vote to the server.
+		ws.vote(this.props.name, vote);
+
+		this.setState({ vote });
 	}
 
 	render() {
@@ -188,11 +217,21 @@ class Restaurant extends React.Component {
 				{ className: "vote-btn-container" },
 				createElement(
 					VoteButton, 
-					{ name: this.props.name, type: "up", id: `${ this.props.name }-vote-up` }
+					{ 
+						active: this.state.vote === "up", 
+						id: `${ this.props.name }-vote-up`,
+						type: "up",
+						vote: this.vote
+					}
 				),
 				createElement(
 					VoteButton, 
-					{ name: this.props.name, type: "down", id: `${ this.props.name }-vote-down` }
+					{ 
+						active: this.state.vote === "down", 
+						id: `${ this.props.name }-vote-down`,
+						type: "down",
+						vote: this.vote
+					}
 				)
 			)
 		);
@@ -243,68 +282,7 @@ class VoteButton extends Restaurant {
 		this.state = {};
 
 		this.vote = () => {
-			const active = !this.state.active;
-			console.log("vote", this); // debug
-
-			if (this.props.type === "up") {
-				if (active) this.upvote();
-				else this.removeVote();
-			}
-			else {
-				if (active) this.downvote();
-				else this.removeVote();
-			}
-
-			const new_vote = {
-				vote: this.props.type === "up" ? 1 : -1,
-				restaurant: this.props.name,
-				timestamp: Date.now(),
-				id: this.props.id
-			};
-
-			const i = votes.findIndex(vote => vote.restaurant === new_vote.restaurant);
-			console.log("i", i); // debug
-
-			const existing_vote = votes[i];
-			console.log("existing vote", existing_vote); // debug
-			if (existing_vote) {
-				// Find the vote button element.
-				// const element = document.getElementById(existing_vote.id);
-				// console.log("element", element); // debug
-
-				// element.classList.remove("active");
-				votes.splice(i, 1);
-			}
-
-			// If this vote is active, add it to the votes.
-			if (active) {
-				votes.push(new_vote);
-			}
-
-			console.log("votes", votes); // debug
-
-			// const element = document.getElementById(this.props.id);
-			// if (active) element.classList.add("active");
-			// else element.classList.remove("active");
-
-			// Set the button's state.
-			this.setState({ active });
-
-			// TODO: Sync frontend voting with the backend.
-			// eg. If restaurant is already upvoted and then downvoted, remove the upvote in the frontend.
-			// eg. If the user has already 2 votes and voting, remove the oldest vote.
-		}
-
-		this.upvote = () => {
-			upvote(this.props.name);
-		};
-
-		this.downvote = () => {
-			downvote(this.props.name);
-		};
-
-		this.removeVote = () => {
-			removeVote(this.props.name);
+			this.props.vote(this.props.type);
 		}
 	}
 
@@ -315,7 +293,7 @@ class VoteButton extends Restaurant {
 		return createElement(
 			"button",
 			{ 
-				className: `vote-btn ${ this.props.type } ${ this.state.active ? "active" : "" } icon-btn`, 
+				className: `vote-btn ${ this.props.active ? "active" : "" } icon-btn`, 
 				id: this.props.id,
 				onClick: this.vote
 			},
@@ -443,24 +421,6 @@ const setDarkMode = (mode = "light") => {
 	document.documentElement.style.setProperty("--foreground-color", `var(--foreground-color-${ mode }`);
 
 	localStorage.setItem("dark_mode", mode);
-};
-
-// Upvote restaurant.
-const upvote = restaurant => {
-	console.log("upvote", restaurant); // debug
-	ws.upvote(restaurant);
-};
-
-// Downvote restaurant.
-const downvote = restaurant => {
-	console.log("downvote", restaurant); // debug
-	ws.downvote(restaurant);
-};
-
-// Remove vote from restaurant.
-const removeVote = restaurant => {
-	console.log("remove vote", restaurant); // debug
-	ws.removeVote(restaurant);
 };
 
 // Init stuff.

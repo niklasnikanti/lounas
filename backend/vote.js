@@ -22,14 +22,6 @@ const vote = {
 
 					// If message contains vote, add it to the votes.
 					if (message.type === "vote") {
-						// Create the new vote.
-						const new_vote = {
-							vote: message.vote,
-							restaurant: message.restaurant,
-							uid: message.uid,
-							timestamp: Date.now()
-						};
-
 						// Check how many votes the voter already has. Limit the votes to 2.
 						const user_votes = votes.filter(vote => vote.uid === message.uid);
 						console.log("user votes", user_votes); // debug
@@ -49,6 +41,14 @@ const vote = {
 							vote => vote.uid === message.uid && vote.restaurant === message.restaurant
 						);
 						console.log("i", i); // debug
+
+						// Create the new vote.
+						const new_vote = {
+							vote: message.vote,
+							restaurant: message.restaurant,
+							uid: message.uid,
+							timestamp: Date.now()
+						};
 
 						console.log("already voted this restaurant", i); // debug
 						if (i === -1) {
