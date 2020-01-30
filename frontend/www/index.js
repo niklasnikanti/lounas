@@ -114,25 +114,28 @@ class WS {
 
 	// Vote restaurant.
 	vote(restaurant, vote) {
-		// TODO: Sync frontend voting with the backend.
-		// eg. If restaurant is already upvoted and then downvoted, replace the restaurant's vote in the frontend.
-		// eg. If the user has already 2 votes and voting, remove the oldest vote.
 		const uid = localStorage.getItem("uid");
-		console.log("vote", restaurant, vote, "uid", uid); // debug
+		console.log("vote", restaurant, vote, "uid", uid, "votes", votes); // debug
 
 		if (vote) {
-			// Check if the user already has two votes and remove the oldest one if they do.
-			// TODO: Make the UI reflect this. Possibly need to create a parent element for all restaurants? 
-			// Or make the restaurant element check the votes array?
-			if (votes.length === 2) votes.shift();
-
-			// Find the index of the vote within the votes.
+			// Check if the votes already contain a vote for the restaurant.
 			const i = votes.findIndex(vote => vote.restaurant === restaurant);
 			console.log("i", i); // debug
 
-			const existing_vote = votes[i];
-			console.log("existing vote", existing_vote); // debug
-			if (existing_vote) votes.splice(i, 1);
+			// TODO: Allow only 1 upvote and 1 downvote.
+			// Limit the votes to 2.
+			if (votes.length === 2 && i === -1) {
+				const deleted_vote = votes.shift();
+
+				const deleted_restaurant = react_restaurants.find(
+					restaurant => restaurant.props.name === deleted_vote.restaurant
+				);
+
+				deleted_restaurant.setState({ vote: null });
+			}
+
+			// Remove the existing vote.
+			if (i > -1) votes.splice(i, 1);
 
 			// Create a new vote.
 			const new_vote = {
@@ -167,6 +170,7 @@ class WS {
 };
 
 // Restaurant parent element
+const react_restaurants = [];
 class Restaurant extends React.Component {
 	constructor(props) {
 		super(props);
@@ -174,6 +178,8 @@ class Restaurant extends React.Component {
 		this.state = {};
 
 		this.vote = this.vote.bind(this);
+
+		react_restaurants.push(this);
 	}
 
 	vote(v) {
@@ -239,7 +245,7 @@ class Restaurant extends React.Component {
 }
 
 // Dish element for a restaurant.
-class Dish extends Restaurant {
+class Dish extends React.Component {
 	constructor(props) {
 		super(props)
 	}
@@ -275,7 +281,7 @@ class Dish extends Restaurant {
 }
 
 // Vote button for a restaurant.
-class VoteButton extends Restaurant {
+class VoteButton extends React.Component {
 	constructor(props) {
 		super(props);
 
@@ -287,8 +293,6 @@ class VoteButton extends Restaurant {
 	}
 
 	render() {
-		console.log("rendering vote button", this.props); // debug
-
 		// Create a vote button.
 		return createElement(
 			"button",
@@ -334,6 +338,7 @@ const renderDay = d => {
 };
 
 // Set the current day.
+const rendered_restaurants = [];
 const setDay = async d => {
 	// Render the day.
 	renderDay(d);
@@ -368,7 +373,9 @@ const setDay = async d => {
 					lunches: restaurants[key]
 				};
 
-				return createElement(Restaurant, restaurant);
+				const rendered_restaurant = createElement(Restaurant, restaurant);
+				rendered_restaurants.push(rendered_restaurant);
+				return rendered_restaurant;
 			});
 
 			console.log("restaurants to render", restaurants_to_render); // debug
@@ -377,6 +384,8 @@ const setDay = async d => {
 
 		restaurant_container
 	);
+
+	console.log("RENDERED RESTAURANTS", rendered_restaurants); // debug
 };
 
 // Get the next day.

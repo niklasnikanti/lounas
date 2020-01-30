@@ -23,10 +23,17 @@ const vote = {
 					// If message contains vote, add it to the votes.
 					if (message.type === "vote") {
 						// Check how many votes the voter already has. Limit the votes to 2.
+						// TODO: Allow only 1 upvote and 1 downvote.
 						const user_votes = votes.filter(vote => vote.uid === message.uid);
 						console.log("user votes", user_votes); // debug
 
-						if (user_votes.length === 2) {
+						// Check if the votes already contain the voter's vote and add it if it doesn't.
+						const i = votes.findIndex(
+							vote => vote.uid === message.uid && vote.restaurant === message.restaurant
+						);
+						console.log("i", i); // debug
+
+						if (user_votes.length === 2 && i === -1) {
 							// Remove the oldest vote.
 							const oldest_index = votes.findIndex(
 								vote => vote.timestamp === user_votes[0].timestamp && vote.uid === user_votes[0].uid
@@ -36,11 +43,8 @@ const vote = {
 							votes.splice(oldest_index, 1);
 						}
 
-						// Check if the votes already contain the voter's vote and add it if it doesn't.
-						const i = votes.findIndex(
-							vote => vote.uid === message.uid && vote.restaurant === message.restaurant
-						);
-						console.log("i", i); // debug
+						// If vote already exists, remove it.
+						if (i > -1) votes.splice(i, 1);
 
 						// Create the new vote.
 						const new_vote = {
@@ -50,14 +54,8 @@ const vote = {
 							timestamp: Date.now()
 						};
 
-						console.log("already voted this restaurant", i); // debug
-						if (i === -1) {
-							// Push the new vote to the votes.
-							votes.push(new_vote);
-						} else {
-							// If vote already exists, then replace the existing vote with the new one.
-							votes.splice(i, 1, new_vote);
-						}
+						// Push the new vote to the votes.
+						votes.push(new_vote);
 
 						console.log("votes", votes); // debug
 					}
