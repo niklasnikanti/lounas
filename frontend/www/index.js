@@ -57,7 +57,14 @@ class WS {
 		this.ws.onopen = evt => {
 			console.log("WebSocket connection is open", evt); // debug
 
-			this.ws.send(JSON.stringify({ msg: "hey" }));
+			// TODO: Try to find any votes the user has cast and send them to the server. (In case of connection loss and reconnection)
+			console.log("votes", votes); // debug
+			votes.forEach(vote => {
+				const thumbs = vote.score === 1 ? "up" : "down";
+				console.log("VOTE", vote.restaurant, thumbs); // debug
+
+				this.vote(vote.restaurant, thumbs);
+			});
 		};
 
 		// Listen for incoming messages from the server.
@@ -68,6 +75,7 @@ class WS {
 			const data = JSON.parse(msg.data);
 			console.log("data", data); // debug
 
+			// Server's offered uid.
 			if (data.uid) {
 				console.log("contains uid", data.uid); // debug
 
@@ -79,8 +87,32 @@ class WS {
 				if (!uid) {
 					// Store uid locally.
 					localStorage.setItem("uid", data.uid);
+				} else {
+					// Replace the uid with the existing uid.
+					this.ws.send(JSON.stringify({ 
+						type: "replace_uid", 
+						existing_uid: uid, 
+						offered_uid: data.uid 
+					}));
 				}
-				
+			}
+
+			// If the server already has votes the user has cast.
+			if (data.existing_votes) {
+				const { existing_votes } = data;
+				console.log("existing votes", existing_votes); // debug
+
+				votes = existing_votes;
+				console.log("votes", votes, "react restaurants", react_restaurants); // debug
+
+				react_restaurants.forEach(restaurant => {
+					const existing_vote = existing_votes.find(vote => vote.restaurant === restaurant.props.name);
+					console.log("existing vote", existing_vote); // debug
+					if (!existing_vote) return;
+
+					const vote = existing_vote.score === 1 ? "up" : "down";
+					restaurant.setState({ vote });
+				})
 			}
 		};
 
@@ -101,14 +133,15 @@ class WS {
 	// Try to reconnect to the WebSocket server.
 	reconnect() {
 		setTimeout(() => {
-			console.log("reconnect", this.ws.readyState, WebSocket.OPEN); // debug
-			if (this.ws.readyState > WebSocket.OPEN) {
-				// Connect to the WebSocket server.
-				this.connect();
+			if (this.ws.readyState <= WebSocket.OPEN) return;
 
-				// Ensure that the connection has been made.s
-				this.reconnect();
-			}
+			console.log("Trying to reconnect", this.ws.readyState); // debug
+
+			// Connect to the WebSocket server.
+			this.connect();
+
+			// Ensure that the connection has been made.
+			this.reconnect();
 		}, 3000);
 	};
 
@@ -118,30 +151,44 @@ class WS {
 		console.log("vote", restaurant, vote, "uid", uid, "votes", votes); // debug
 
 		if (vote) {
+			const score = vote === "up" ? 1 : -1;
+
+			// Find if there is already a vote with similar score.
+			const similar_score = votes.filter(
+				vote => vote.score === score
+			);
+			console.log("similar score", similar_score); // debug
+
+			// If a similar score vote exists, remove it. Allow only 1 upvote and 1 downvote.
+			if (similar_score.length) {
+				const similar_index = votes.findIndex(
+					vote => vote.timestamp === similar_score[0].timestamp
+				);
+				console.log("similar index", similar_index); // debug
+
+				if (similar_index > -1) {
+					const deleted_vote = votes.splice(similar_index, 1)[0];
+
+					const deleted_restaurant = react_restaurants.find(
+						restaurant => restaurant.props.name === deleted_vote.restaurant
+					);
+
+					deleted_restaurant.setState({ vote: null });
+				}
+			}
+
 			// Check if the votes already contain a vote for the restaurant.
 			const i = votes.findIndex(vote => vote.restaurant === restaurant);
 			console.log("i", i); // debug
 
-			// TODO: Allow only 1 upvote and 1 downvote.
-			// Limit the votes to 2.
-			if (votes.length === 2 && i === -1) {
-				const deleted_vote = votes.shift();
-
-				const deleted_restaurant = react_restaurants.find(
-					restaurant => restaurant.props.name === deleted_vote.restaurant
-				);
-
-				deleted_restaurant.setState({ vote: null });
-			}
-
-			// Remove the existing vote.
-			if (i > -1) votes.splice(i, 1);
+			// Check if the restaurant already has an existing vote and remove it if it exists.
+			if (i > -1) votes.splice(i, 1)[0];
 
 			// Create a new vote.
 			const new_vote = {
 				type: "vote",
 				restaurant,
-				vote: vote === "up" ? 1 : -1,
+				score,
 				uid,
 				timestamp: Date.now()
 			};
@@ -165,7 +212,9 @@ class WS {
 			}));
 		}
 
-		console.log("votes", votes); // debug
+		votes.forEach(vote => {
+			console.log("votes", vote);
+		}); // debug
 	}
 };
 
