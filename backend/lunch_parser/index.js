@@ -1,4 +1,5 @@
 const moment = require("moment");
+	  moment.locale("fi");
 const utils = require("./utils");
 const order = ["Iso-Huvila", "Verka", "Palmia", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
 const reska = require("./reska");
@@ -79,7 +80,9 @@ const autoFetch = async () => {
 	let timeout = 10 - total_hours;
 	if (timeout < 0) timeout = 24 + timeout;
 
-	setTimeout(autoFetch, timeout * 1000 * 60 * 60);
+	// Ensure the timeout is at least 1 minute in milliseconds.
+	const total_timeout = Math.max(timeout * 1000 * 60 * 60, 60000);
+	setTimeout(autoFetch, total_timeout);
 };
 autoFetch();
 

@@ -49,7 +49,7 @@ const utils = {
 			allowedTags: []
 		});
 
-		sanizitized_html = sanitized_html.replace(/&amp;/g, "&");
+		sanitized_html = sanitized_html.replace(/&amp;/g, "&");
 
 		return sanitized_html;
 	},
