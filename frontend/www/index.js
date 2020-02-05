@@ -38,7 +38,7 @@ class WS {
 		this.http_protocol = this.base_url.match(/^.*?(?=:)/)[0];
 		console.log("http protocol", this.http_protocol); // debug
 
-		this.ws_protocol = "ws" //this.http_protocol !== "http" ? "wss" : "ws";
+		this.ws_protocol = this.http_protocol !== "http" ? "wss" : "ws";
 
 		this.host = this.base_url.match(/\/\/([^:\/]*)/)[1];
 		console.log("host", this.host); // debug
