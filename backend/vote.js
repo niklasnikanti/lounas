@@ -169,7 +169,7 @@ const vote_obj = {
 		});
 
 		// Open WebSocket server.
-		const wss_port = env === "development" ? 80 : 433;
+		const wss_port = env === "development" ? 80 : 1690;
 		wss = new WebSocket.Server({ port: wss_port });
 
 		// When a client connects to the WebSocket server.

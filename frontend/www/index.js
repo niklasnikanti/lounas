@@ -43,7 +43,9 @@ class WS {
 		this.host = this.base_url.match(/\/\/([^:\/]*)/)[1];
 		console.log("host", this.host); // debug
 
-		this.url = `${ this.ws_protocol }://${ this.host }`;
+		this.port = this.ws_protocol === "ws" ? 80 : 1690;
+
+		this.url = `${ this.ws_protocol }://${ this.host }:${ this.port }`;
 		console.log("url", this.url); // deubg
 
 		this.connect();
