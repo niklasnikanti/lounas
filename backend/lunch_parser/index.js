@@ -80,7 +80,7 @@ const lunchParser = {
 	}
 }; 
 
-// Auto fetch lunch at 10:00 each day.
+// Auto fetch lunch at 8:00 each day.
 const autoFetch = async () => {
 	await lunchParser.fetchLunches();
 
@@ -90,7 +90,7 @@ const autoFetch = async () => {
 	console.log("auto fetch total hours", total_hours,);
 
 	// Get the timeout in hours.
-	let timeout = 10 - total_hours;
+	let timeout = 8 - total_hours;
 	if (timeout < 0) timeout = 24 + timeout;
 
 	// Ensure the timeout is at least 1 minute in milliseconds.
