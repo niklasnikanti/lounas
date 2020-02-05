@@ -3,16 +3,16 @@ const moment = require("moment");
 const utils = require("./utils");
 
 // The order to send back the resturants to the client.
-const order = ["Iso-Huvila", "Palmia", "Verka", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
+const order = utils.restaurants;
 
-// How many hours are the restaurants cached before trying to fetch them again.
-const cached_hours = 12;
+const vote = require("../vote");
 
 // Restaurant parsers.
 const reska = require("./reska");
 const isohuvila = require("./isohuvila");
 const palmia = require("./palmia");
 const bora = require("./bora");
+// TODO: Verka parser.
 
 // Restaurant votes.
 const votes = [];
@@ -58,8 +58,6 @@ const lunchParser = {
 			}
 		});
 
-		this.fetched = moment().format();
-
 		// Order the restaurants.
 		const ordered_lunches = {};
 		order.forEach(o => {
@@ -82,19 +80,24 @@ const lunchParser = {
 
 // Auto fetch lunch at 8:00 each day.
 const autoFetch = async () => {
+	// Fetch the lunches.
 	await lunchParser.fetchLunches();
+
+	// Reset the scores.
+	vote.resetVotes();
 
 	const hours = moment().hours();
 	const minutes = moment().minutes();
-	const total_hours = hours + ( minutes / 60 );
-	console.log("auto fetch total hours", total_hours,);
+	const seconds = moment().seconds();
+	const total_hours = hours + ( minutes / 60 ) + ( seconds / 60 / 60 );
 
 	// Get the timeout in hours.
 	let timeout = 8 - total_hours;
-	if (timeout < 0) timeout = 24 + timeout;
+	if (timeout <= 0) timeout = 24 + timeout;
+	console.log("auto fetch total hours", total_hours, "timeout", timeout);
 
-	// Ensure the timeout is at least 1 minute in milliseconds.
-	const total_timeout = Math.max(timeout * 1000 * 60 * 60, 60000);
+	// Ensure the timeout is at least 10 seconds in milliseconds.
+	let total_timeout = Math.max(timeout * 1000 * 60 * 60, 10000);
 	setTimeout(autoFetch, total_timeout);
 };
 autoFetch();

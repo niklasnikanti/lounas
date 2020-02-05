@@ -7,9 +7,11 @@ const moment = require("moment");
 	  moment.locale("fi");
 const date_format = "DD.MM.YYYY";
 const cached_hours = 12;
+const restaurants = ["Iso-Huvila", "Palmia", "Verka", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
 
 const utils = {
 	cached_hours,
+	restaurants,
 
 	// Fetch a website.
 	async fetch(parser, url) {

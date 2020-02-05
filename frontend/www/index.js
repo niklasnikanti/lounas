@@ -57,7 +57,8 @@ class WS {
 		this.ws.onopen = evt => {
 			console.log("WebSocket connection is open", evt); // debug
 
-			// TODO: Try to find any votes the user has cast and send them to the server. (In case of connection loss and reconnection)
+			// Try to find any votes the user has cast and send them to the server. 
+			// (In case of connection loss and reconnection)
 			console.log("votes", votes); // debug
 			votes.forEach(vote => {
 				const thumbs = vote.score === 1 ? "up" : "down";
@@ -65,6 +66,8 @@ class WS {
 
 				this.vote(vote.restaurant, thumbs);
 			});
+
+			if (votes.length) this.getScores();
 		};
 
 		// Listen for incoming messages from the server.
@@ -112,7 +115,19 @@ class WS {
 
 					const vote = existing_vote.score === 1 ? "up" : "down";
 					restaurant.setState({ vote });
-				})
+				});
+
+				this.getScores();
+			}
+
+			// Server is sending the current scores.
+			if (data.scores) {
+				const { scores } = data;
+				console.log("scores", scores);
+
+				react_restaurants.forEach(restaurant => {
+					restaurant.setState({ score: scores[restaurant.props.name] });
+				});
 			}
 		};
 
@@ -215,7 +230,16 @@ class WS {
 		votes.forEach(vote => {
 			console.log("votes", vote);
 		}); // debug
-	}
+	};
+
+	// Get scores.
+	getScores() {
+		setTimeout(() => {
+			this.ws.send(JSON.stringify({
+				type: "get_scores"
+			}));
+		}, 1500);
+	};
 };
 
 // Restaurant parent element
@@ -257,6 +281,7 @@ class Restaurant extends React.Component {
 
 			createElement("br"),
 
+			// Create the dishes.
 			dishes.map((dish, i) => {
 				return createElement(Dish, {
 					key:  `${ this.props.name }${ i }`,
@@ -277,6 +302,12 @@ class Restaurant extends React.Component {
 						id: `${ this.props.name }-vote-up`,
 						type: "up",
 						vote: this.vote
+					}
+				),
+				createElement(
+					Score,
+					{
+						score: this.state.score
 					}
 				),
 				createElement(
@@ -355,6 +386,23 @@ class VoteButton extends React.Component {
 				{ className: "material-icons" },
 				`thumb_${ this.props.type }`
 			)
+		)
+	}
+}
+
+// Score for the restaurant.
+class Score extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+
+	render() {
+		return createElement(
+			"span",
+			{
+				className: "score"
+			},
+			this.props.score
 		)
 	}
 }
@@ -477,6 +525,7 @@ const toggleDarkMode = () => {
 const setDarkMode = (mode = "light") => {
 	document.documentElement.style.setProperty("--background-color", `var(--background-color-${ mode }`);
 	document.documentElement.style.setProperty("--foreground-color", `var(--foreground-color-${ mode }`);
+	document.documentElement.style.setProperty("--btn-inactive", `var(--btn-inactive-${ mode }`);
 
 	localStorage.setItem("dark_mode", mode);
 };
