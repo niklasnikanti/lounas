@@ -64,13 +64,7 @@ const removeVote = (message, ws) => {
 	// Remove the vote.
 	votes.splice(i, 1);
 
-	// Clients to send the message to.
-	const clients = Array.from(wss.clients).filter(
-		client => votes.some(vote => vote.uid === client.uid)
-	);
-	clients.push(ws);
-
-	broadcastVotes(clients);
+	broadcastVotes();
 };
 
 // Replace UID.
@@ -102,7 +96,7 @@ const replaceUid = (message, ws) => {
 	// Replace the WebSocket client uid.
 	if (existing_votes.length) {
 		ws.voted = true;
-		
+
 		ws.send(JSON.stringify({ existing_votes }));
 	}
 };
@@ -141,7 +135,7 @@ const getScores = (message, ws) => {
 };
 
 // Broadcast current scores to all connected WebSocket clients.
-const broadcastVotes = clients => {
+const broadcastVotes = () => {
 	console.log("broadcast votes", votes); // debug
 	clearTimeout(broadcast_timeout);
 
@@ -149,10 +143,10 @@ const broadcastVotes = clients => {
 		parseScores();
 
 		// Check if the client has voted before broadcasting to it.
-		const wss_clients = clients || Array.from(wss.clients).filter(
+		const wss_clients = Array.from(wss.clients).filter(
 			client => client.voted
 		);
-		console.log("client", !!clients, "wss clients", wss_clients.length, wss_clients.map(client => client.uid)); // debug
+		console.log("wss clients", wss_clients.length, wss_clients.map(client => client.uid)); // debug
 
 		wss_clients.forEach(client => {
 			if (client.readyState === WebSocket.OPEN) {
