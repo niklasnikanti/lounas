@@ -148,7 +148,7 @@ const broadcastVotes = clients => {
 		const wss_clients = clients || Array.from(wss.clients).filter(
 			client => client.voted
 		);
-		console.log("client", !!clients, "wss clients", wss_clients.map(client => client.uid)); // debug
+		console.log("client", !!clients, "wss clients", wss_clients.length, wss_clients.map(client => client.uid)); // debug
 
 		wss_clients.forEach(client => {
 			if (client.readyState === WebSocket.OPEN) {
@@ -166,7 +166,7 @@ const vote_obj = {
 		});
 
 		// Open WebSocket server.
-		const port = env === "development" ? 80 : 1690;
+		const port = env === "development" ? 80 : 1420;
 		wss = new WebSocket.Server({ port, path: "/ws" });
 		console.log("wss", wss);
 
