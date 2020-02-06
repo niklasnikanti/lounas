@@ -45,7 +45,7 @@ class WS {
 
 		this.port = this.ws_protocol === "ws" ? 80 : 443;
 
-		this.url = `${ this.ws_protocol }://${ this.host }:${ this.port }`;
+		this.url = `${ this.ws_protocol }://${ this.host }:${ this.port }/ws`;
 		console.log("url", this.url); // deubg
 
 		this.connect();
