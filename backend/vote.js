@@ -29,7 +29,7 @@ const vote = (message, ws) => {
 	const i = votes.findIndex(
 		vote => vote.uid === message.uid && vote.restaurant === message.restaurant
 	);
-	console.log("i", i); // debug
+	console.log("vote index", i); // debug
 
 	// If the user already voted for the resturant, delete the existing vote.
 	if (i > -1) votes.splice(i, 1);
@@ -44,7 +44,9 @@ const vote = (message, ws) => {
 
 	// Push the new vote to the votes.
 	votes.push(new_vote);
-	console.log("votes", votes); // debug
+
+	// Mark that the client has voted.
+	ws.voted = true;
 
 	broadcastVotes();
 };
@@ -55,13 +57,12 @@ const removeVote = (message, ws) => {
 	const i = votes.findIndex(
 		vote => vote.uid === message.uid && vote.restaurant === message.restaurant
 	);
-	console.log("vote index", i); // debug
+	console.log("unvote index", i); // debug
 
 	if (i < 0) return;
 
 	// Remove the vote.
 	votes.splice(i, 1);
-	console.log("votes", votes); // debug
 
 	// Clients to send the message to.
 	const clients = Array.from(wss.clients).filter(
@@ -106,10 +107,10 @@ const replaceUid = (message, ws) => {
 const parseScores = () => {
 	Object.keys(scores).forEach(restaurant => {
 		const restaurant_votes = votes.filter(vote => vote.restaurant === restaurant);
-		console.log("restaurant votes", restaurant, restaurant_votes); // debug
 
 		scores[restaurant] = restaurant_votes.reduce((total, current) => total += current.score, 0);
 	});
+	console.log("scores", scores); // debug
 };
 
 // Reset votes and scores.
@@ -143,19 +144,15 @@ const broadcastVotes = clients => {
 	broadcast_timeout = setTimeout(() => {
 		parseScores();
 
+		// Check if the client has voted before broadcasting to it.
 		const wss_clients = clients || Array.from(wss.clients).filter(
-			client => votes.some(vote => vote.uid === client.uid)
+			client => client.voted
 		);
-		console.log("wss clients", wss_clients.length); // debug
+		console.log("client", !!clients, "wss clients", wss_clients.map(client => client.uid)); // debug
 
 		wss_clients.forEach(client => {
 			if (client.readyState === WebSocket.OPEN) {
-				// Check if the client has voted before broadcasting to it.
-				const has_voted = votes.some(vote => vote.uid === client.uid);
-				console.log("has voted", has_voted, client.uid); // debug
-				if (has_voted) {
-					client.send(JSON.stringify({ scores }));
-				}
+				client.send(JSON.stringify({ scores }));
 			}
 		});
 	}, 500);	
@@ -170,13 +167,11 @@ const vote_obj = {
 
 		// Open WebSocket server.
 		const wss_port = env === "development" ? 80 : 443;
-		wss = new WebSocket.Server({ port: wss_port });
+		wss = new WebSocket.Server({ port: 80 /*wss_port*/ });
 		console.log("wss", wss);
 
 		// When a client connects to the WebSocket server.
 		wss.on("connection", function connection(ws) {
-			console.log("WebSocket connected to the server!", ws.uid);
-
 			ws.on("message", function incoming(msg) {
 				try {
 					const message = JSON.parse(msg);
@@ -200,7 +195,7 @@ const vote_obj = {
 
 			// Generate a new uid.
 			const uid = ws.uid = uuidv4();
-			console.log("uid", uid);
+			console.log("WebSocket connected to the server!", ws.uid);
 
 			uids.push(uid);
 			console.log("uids", uids);
