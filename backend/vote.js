@@ -100,7 +100,11 @@ const replaceUid = (message, ws) => {
 	console.log("existing votes", existing_votes); // debug
 
 	// Replace the WebSocket client uid.
-	if (existing_votes.length) ws.send(JSON.stringify({ existing_votes }));
+	if (existing_votes.length) {
+		ws.voted = true;
+		
+		ws.send(JSON.stringify({ existing_votes }));
+	}
 };
 
 // Parse scores.
