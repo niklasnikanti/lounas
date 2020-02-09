@@ -34,7 +34,7 @@ const palmia = {
 					return {
 						name: utils.clearHtml(name_element.innerHTML),
 						info: utils.clearHtml(info_element.innerHTML),
-						...(i < 3 && { price: utils.clearHtml(prices[i]) })
+						...(i < 3 && { price: utils.parsePrice(prices[i]) })
 					};
 				});
 

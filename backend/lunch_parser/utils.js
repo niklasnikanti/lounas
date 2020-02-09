@@ -56,6 +56,16 @@ const utils = {
 		return sanitized_html;
 	},
 
+	// Parse price.
+	parsePrice(price) {
+		let clean_price = this.clearHtml(price);
+
+		let numeric_part = clean_price.match(/(\d|,)+/);
+
+		const parsed_price = numeric_part ? `${ numeric_part[0] } €` : "";
+		return parsed_price;
+	},
+
 	// Get the current week dates.
 	getWeekDates() {
 		const dates = this.dates || [];

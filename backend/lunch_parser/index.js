@@ -8,11 +8,13 @@ const order = utils.restaurants;
 const vote = require("../vote");
 
 // Restaurant parsers.
-const reska = require("./reska");
-const isohuvila = require("./isohuvila");
-const palmia = require("./palmia");
-const bora = require("./bora");
-// TODO: Verka parser.
+const lunch_parsers = [
+	require("./reska"),
+	require("./isohuvila"),
+	require("./palmia"),
+	require("./bora"),
+	require("./verka")
+];
 
 // Restaurant votes.
 const votes = [];
@@ -27,12 +29,9 @@ const lunchParser = {
 		const timestamp = Date.now(); // debug
 
 		// Fetch the lunches.
-		const all_lunches = await Promise.all([
-			{ ...await reska.getLunch() },
-			{ ...await isohuvila.getLunch() },
-			{ ...await palmia.getLunch() },
-			{ ...await bora.getLunch() }
-		]);
+		const all_lunches = await Promise.all(lunch_parsers.map(async parser => 
+			({ ...await parser.getLunch() })
+		));
 
 		all_lunches.forEach(lunch => {
 			Object.keys(lunch).forEach(restaurant => {
@@ -85,6 +84,9 @@ const autoFetch = async () => {
 
 	// Reset the scores.
 	vote.resetVotes();
+
+	// Reset dates.
+	utils.dates = null;
 
 	const hours = moment().hours();
 	const minutes = moment().minutes();

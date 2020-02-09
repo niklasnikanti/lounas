@@ -24,7 +24,7 @@ const isohuvila = {
 
 					return {
 						name: utils.clearHtml(name),
-						price: utils.clearHtml(price)
+						price: utils.parsePrice(price)
 					};
 				});
 

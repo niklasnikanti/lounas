@@ -38,7 +38,7 @@ const reska = {
 
 					const dish = name_element ? {
 						name: utils.clearHtml(name_element.innerHTML),
-						price: utils.clearHtml(price_element.innerHTML),
+						price: utils.parsePrice(price_element.innerHTML),
 						info: utils.clearHtml(info_element.innerHTML)
 					} : null;
 
@@ -57,7 +57,7 @@ const reska = {
 			Hällä: parseReskaLunch(".kellariravintola-halla"),
 			Maja: parseReskaLunch(".ravintola-maja"),
 			Popino: parseReskaLunch(".ravintola-popino"),
-			Verka: parseReskaLunch(".ravintola-verka"),
+			// Verka: parseReskaLunch(".ravintola-verka"),
 			Pannu: parseReskaLunch(".cafe-pannu")
 		};
 

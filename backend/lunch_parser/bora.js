@@ -35,7 +35,7 @@ const bora = {
 
 			const dishes = dish_list.map(dish => ({
 				name: utils.clearHtml(dish),
-				price: utils.clearHtml(price)
+				price: utils.parsePrice(price)
 			}))
 
 			lunches.push({
