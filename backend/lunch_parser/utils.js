@@ -6,16 +6,15 @@ const sanitizeHtml = require("sanitize-html");
 const moment = require("moment");
 	  moment.locale("fi");
 const date_format = "DD.MM.YYYY";
-const cached_hours = 12;
 const restaurants = ["Iso-Huvila", "Palmia", "Verka", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
 
 const utils = {
-	cached_hours,
+	cached_hours: 12,
 	restaurants,
 
 	// Fetch a website.
 	async fetch(parser, url) {
-		const cache_expired = parser.fetched ? moment().isAfter(moment(parser.fetched).add(cached_hours, "hours")) : true;
+		const cache_expired = parser.fetched ? moment().isAfter(moment(parser.fetched).add(this.cached_hours, "hours")) : true;
 		console.log("cache expired", cache_expired, url, "fetched", parser.fetched); // debug
 
 		if (!cache_expired) return {
@@ -56,7 +55,7 @@ const utils = {
 		return sanitized_html;
 	},
 
-	// Parse price.
+	// Parse a price.
 	parsePrice(price) {
 		let clean_price = this.clearHtml(price);
 

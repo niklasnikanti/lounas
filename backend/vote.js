@@ -9,6 +9,12 @@ let broadcast_timeout;
 
 // Vote a restaurant.
 const vote = (message, ws) => {
+	if (isNaN(message.score)) return;
+
+	// Ensure that the message score is 1 or -1.
+	if (message.score < -1) message.score = -1;
+	else if (message.score > 1) message.score = 1;
+
 	// Find if there is already a vote with similar score.
 	const similar_score = votes.filter(
 		vote => vote.uid === message.uid && vote.score === message.score
@@ -75,18 +81,21 @@ const replaceUid = (message, ws) => {
 	const i = uids.findIndex(uid => uid === message.offered_uid);
 	console.log("offered uid index", i); // debug
 
+	// Remove the offered uid.
+	if (i > -1) {
+		uids.splice(i, 1);
+	}
+
 	// Check if the uid already exists within the uids before adding it.
 	const uid_exists = uids.some(uid => uid === message.existing_uid);
 	console.log("uid exists?", uid_exists); // debug
 
 	// Add the new uid to the uids and remove the existing uid.
 	if (!uid_exists && i > -1) {
-		uids.splice(i, 1);
-
 		uids.push(message.existing_uid);
 
 		ws.uid = message.existing_uid;
-	}
+	} 
 	console.log("uids", uids); // debug
 
 	// Find if there are votes for the uid and send them back to the client.
@@ -94,11 +103,11 @@ const replaceUid = (message, ws) => {
 	console.log("existing votes", existing_votes); // debug
 
 	// Replace the WebSocket client uid.
-	if (existing_votes.length) {
-		ws.voted = true;
+	if (!existing_votes.length) return;
 
-		ws.send(JSON.stringify({ existing_votes }));
-	}
+	ws.voted = true;
+
+	ws.send(JSON.stringify({ existing_votes }));
 };
 
 // Parse scores.
