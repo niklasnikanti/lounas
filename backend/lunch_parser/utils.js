@@ -62,8 +62,16 @@ const utils = {
 
 		let numeric_part = clean_price.match(/(\d|,)+/);
 
-		const parsed_price = numeric_part ? `${ numeric_part[0] } €` : "";
-		return parsed_price;
+		const parsed_price = numeric_part ? `${ numeric_part[0] }` : "";
+
+		let formatted_price = parsed_price;
+		if (formatted_price.length) {
+			 if (!formatted_price.includes(",")) formatted_price += ",00";
+
+			 formatted_price = `${ formatted_price } €`; 
+		}
+
+		return formatted_price;
 	},
 
 	// Get the current week dates.
