@@ -11,7 +11,7 @@ const vote = (message, ws) => {
 	if (isNaN(message.score)) return;
 
 	// Ensure that the message score is 1 or -1.
-	if (message.score < -1 || (message.score > -1 && message.score < 0)) message.score = -1;
+	if (message.score < 1) message.score = -1;
 	else message.score = 1;
 
 	// Find if there is already a vote with similar score.
