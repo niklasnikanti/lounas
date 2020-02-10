@@ -22,7 +22,7 @@ for (let i = 0; i < 5; i++) {
 // Get the selected day.
 const today = moment().format("DD.MM.YYYY");
 let selected_day = {
-	date: moment().format("DD.MM.YYYY")
+	date: today
 }; 
 
 let ws;
@@ -487,15 +487,6 @@ const setDay = async d => {
 	console.log("RENDERED RESTAURANTS", rendered_restaurants); // debug
 };
 
-// Get the next day.
-const getNextDay = () => {
-	let next_day = moment(selected_day._date).add(1, "days");
-	if (moment(next_day).isAfter(moment(days[days.length - 1]))) {
-		next_day = moment(days[0]._date);
-	}
-
-	setDay(next_day.format("DD.MM.YYYY"));
-};
 
 // Get the previous day.
 const getPreviousDay = () => {
@@ -507,12 +498,28 @@ const getPreviousDay = () => {
 	setDay(previous_day.format("DD.MM.YYYY"));
 };
 
+// Get the next day.
+const getNextDay = () => {
+	let next_day = moment(selected_day._date).add(1, "days");
+	if (moment(next_day).isAfter(moment(days[days.length - 1]))) {
+		next_day = moment(days[0]._date);
+	}
+
+	setDay(next_day.format("DD.MM.YYYY"));
+};
+
+// Get the current day.
+const getCurrentDay = () => {
+	setDay(today);
+};
+
 // Listen for key downs.
 const keyDown = e => {
 	const { key } = e;
 
 	if (key === "ArrowLeft") getPreviousDay();
 	else if (key === "ArrowRight") getNextDay();
+	else if (key === " ") getCurrentDay();
 };
 
 // Toggle dark mode.
