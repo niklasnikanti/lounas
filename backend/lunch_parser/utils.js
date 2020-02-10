@@ -7,10 +7,9 @@ const moment = require("moment");
 	  moment.locale("fi");
 const date_format = "DD.MM.YYYY";
 const restaurants = ["Iso-Huvila", "Palmia", "Verka", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
-let dates;
 
 const utils = {
-	cached_hours: 12,
+	cached_hours: 8,
 	restaurants,
 
 	// Fetch a website.
@@ -74,19 +73,14 @@ const utils = {
 		return formatted_price;
 	},
 
-	// Get the current week dates.
-	getWeekDates() {
-		dates = [];
+	// Get a date of the week.
+	getDate(i) {
+		const dates = [];
 
 		for (let i = 0; i < 5; i++) {
 			dates.push(moment().startOf("isoweek").add(i, "days").format(date_format));
 		}
 
-		console.log("get week dates", dates); // debug
-	},
-
-	// Get a date of the week.
-	getDate(i) {
 		return dates[i];
 	},
 

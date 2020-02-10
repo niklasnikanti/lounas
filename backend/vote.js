@@ -3,7 +3,6 @@ const uuidv4 = require("uuid/v4");
 const utils = require("./lunch_parser/utils");
 let votes = [];
 const uids = [];
-const scores = {};
 let wss;
 let broadcast_timeout;
 
@@ -12,8 +11,8 @@ const vote = (message, ws) => {
 	if (isNaN(message.score)) return;
 
 	// Ensure that the message score is 1 or -1.
-	if (message.score < -1) message.score = -1;
-	else if (message.score > 1) message.score = 1;
+	if (message.score < -1 || (message.score > -1 && message.score < 0)) message.score = -1;
+	else message.score = 1;
 
 	// Find if there is already a vote with similar score.
 	const similar_score = votes.filter(
@@ -112,22 +111,22 @@ const replaceUid = (message, ws) => {
 
 // Parse scores.
 const parseScores = () => {
-	Object.keys(scores).forEach(restaurant => {
+	const scores = {};
+
+	utils.restaurants.forEach(restaurant => {
 		const restaurant_votes = votes.filter(vote => vote.restaurant === restaurant);
 
-		scores[restaurant] = restaurant_votes.reduce((total, current) => total += current.score, 0);
+		if (restaurant_votes.length) {
+			scores[restaurant] = restaurant_votes.reduce((total, current) => total += current.score, 0);
+		}
 	});
 	console.log("scores", scores); // debug
+
+	return scores;
 };
 
 // Reset votes and scores.
 const resetVotes = () => {
-	console.log("reset scores before", scores); // debug
-	Object.keys(scores).forEach(restaurant => {
-		scores[restaurant] = 0;
-	});
-	console.log("reset scores after", scores); // debug
-
 	console.log("reset votes before", votes); // debug
 	votes = [];
 	console.log("reset votes after", votes); // debug
@@ -138,7 +137,7 @@ const getScores = (message, ws) => {
 	console.log("get scores", message); // debug
 
 	// Parse scores.
-	parseScores();
+	const scores = parseScores();
 
 	ws.send(JSON.stringify({ scores }));
 };
@@ -149,7 +148,7 @@ const broadcastVotes = () => {
 	clearTimeout(broadcast_timeout);
 
 	broadcast_timeout = setTimeout(() => {
-		parseScores();
+		const scores = parseScores();
 
 		// Check if the client has voted before broadcasting to it.
 		const wss_clients = Array.from(wss.clients).filter(
@@ -167,15 +166,9 @@ const broadcastVotes = () => {
 
 const vote_obj = {
 	init(env) {
-		// Init the scores object.
-		utils.restaurants.forEach(restaurant => {
-			scores[restaurant] = 0;
-		});
-
 		// Open WebSocket server.
 		const port = env === "development" ? 80 : 1420;
 		wss = new WebSocket.Server({ port, path: "/ws" });
-		console.log("wss", wss);
 
 		// When a client connects to the WebSocket server.
 		wss.on("connection", function connection(ws) {

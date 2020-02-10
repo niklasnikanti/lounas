@@ -20,39 +20,42 @@ const verka = {
 		const weekdays = ["maanantai", "tiistai", "keskiviikko", "torstai", "perjantai"];
 
 		// Remove the unneeded elements.
-		lunch_elements.splice(0, 1);
 		lunch_elements.splice(-2, 2);
-
-		const monday = lunch_elements.splice(0, 1)[0];
-		lunch_elements.splice(0, 1);
-
-		const lunches = [{
-			date: utils.getDate(0),
-			dishes: [{ name: utils.clearHtml(monday.innerHTML) }]
-		}];
-
+		const lunches = [];
 		let lunch = {};
-		for (let lunch_element of lunch_elements) {
-			const week_day = lunch_element.innerHTML.toLowerCase();
 
-			const i = weekdays.findIndex(day => day === week_day);
+		lunch_elements.forEach((lunch_element, index) => {
+			const week_day_element = lunch_element.querySelector("*:not(br)");
+			const week_day = week_day_element ? week_day_element.innerHTML.toLowerCase() : "";
+
+			const i = weekdays.findIndex(day => week_day.includes(day));
 
 			if (i > -1) {
+				if (i > 0) {
+					// Push the dish the lunches.
+					lunches.push(JSON.parse(JSON.stringify(lunch)));
+					lunch = {};
+				} 
+
 				lunch.date = utils.getDate(i);
 
 				lunch.dishes = [];
-			} else if (lunch_element.innerHTML !== "&nbsp;") {
+				if (i === 0) {
+					lunch.dishes.push({ 
+						name: utils.clearHtml(week_day_element.innerHTML)
+					});
+				}
+			} else if (week_day) {
 				const dish = {
 					name: utils.clearHtml(lunch_element.innerHTML),
 					price
 				};
 
 				lunch.dishes.push(dish);
-			} else {
-				// Push the dish the lunches.
-				lunches.push(JSON.parse(JSON.stringify(lunch)));
+			} else if (index === lunch_elements.length - 1) {
+				lunches.push(lunch)
 			}
-		}
+		});
 
 		const restaurants = this.restaurants = { Verka: lunches };
 

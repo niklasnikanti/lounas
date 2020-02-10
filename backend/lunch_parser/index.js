@@ -28,14 +28,6 @@ const lunchParser = {
 		let lunches = this.lunches || { data: {} };
 		const timestamp = Date.now(); // debug
 
-		// Check if the cache is expired.
-		const cache_expired = this.fetched ? 
-			moment().isAfter(moment(this.fetched).add(utils.cached_hours, "hours")) : 
-			true;
-
-		console.log("cache expired", cache_expired); // debug
-		if (cache_expired) utils.getWeekDates();
-
 		// Fetch the lunches.
 		const all_lunches = await Promise.all(lunch_parsers.map(async parser => 
 			({ ...await parser.getLunch() })
@@ -94,9 +86,6 @@ const autoFetch = async () => {
 
 	// Reset the scores.
 	vote.resetVotes();
-
-	// Refresh dates.
-	utils.getWeekDates();
 
 	const hours = moment().hours();
 	const minutes = moment().minutes();
