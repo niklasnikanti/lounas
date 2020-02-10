@@ -509,17 +509,18 @@ const getNextDay = () => {
 };
 
 // Get the current day.
-const getCurrentDay = () => {
+const getCurrentDay = evt => {
+	evt.preventDefault();
 	setDay(today);
 };
 
 // Listen for key downs.
-const keyDown = e => {
-	const { key } = e;
+const keyDown = evt => {
+	const { key } = evt;
 
 	if (key === "ArrowLeft") getPreviousDay();
 	else if (key === "ArrowRight") getNextDay();
-	else if (key === " ") getCurrentDay();
+	else if (key === " ") getCurrentDay(evt);
 };
 
 // Toggle dark mode.
