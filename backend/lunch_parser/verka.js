@@ -25,8 +25,8 @@ const verka = {
 		let lunch = {};
 
 		lunch_elements.forEach((lunch_element, index) => {
-			const week_day_element = lunch_element.querySelector("*:not(br)");
-			const week_day = week_day_element ? week_day_element.innerHTML.toLowerCase() : "";
+			const week_day_element = lunch_element.querySelector("*:not(br)") || lunch_element;
+			const week_day = lunch_element.innerHTML.toLowerCase().replace(/&nbsp;/gm, "").trim();
 
 			const i = weekdays.findIndex(day => week_day.includes(day));
 
@@ -45,7 +45,7 @@ const verka = {
 						name: utils.clearHtml(week_day_element.innerHTML)
 					});
 				}
-			} else if (week_day) {
+			} else if (week_day.length) {
 				const dish = {
 					name: utils.clearHtml(lunch_element.innerHTML),
 					price
