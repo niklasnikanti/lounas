@@ -119,7 +119,7 @@ class WS {
 					restaurant.setState({ vote });
 				});
 
-				this.getScores();
+				//this.getScores();
 			}
 
 			// Server is sending the current scores.
@@ -130,6 +130,14 @@ class WS {
 				react_restaurants.forEach(restaurant => {
 					restaurant.setState({ score: scores[restaurant.props.name] });
 				});
+			}
+
+			// Server is sending the current vote session.
+			if (data.vote_session) {
+				const { vote_session } = data;
+				console.log("vote session", vote_session); // debug
+
+
 			}
 		};
 
@@ -169,6 +177,8 @@ class WS {
 
 		if (vote) {
 			const score = vote === "up" ? 1 : -1;
+
+			// TODO: Remove local vote check and rely on the server side check only.
 
 			// Find if there is already a vote with similar score.
 			const similar_score = votes.filter(
@@ -405,9 +415,34 @@ class Score extends React.Component {
 				className: "score"
 			},
 			this.props.score
-		)
+		);
 	}
 }
+
+// Voting session timer.
+class Timer extends React.Component {
+	constructor(props) {
+		super(props);
+	}
+
+	render() {
+		return createElement(
+			"div",
+			{
+				className: "timer",
+				style: {
+					width: `${ this.props.left / this.props.total }%`
+				}
+			},
+			""
+		);
+	}
+}
+
+// Update the voting session timer.
+const updateTimer = () => {
+	
+};
 
 // Render the day.
 const renderDay = d => {

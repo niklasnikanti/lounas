@@ -88,6 +88,8 @@ body {
 }
 
 .header .title {
+    margin: 0;
+    font-size: 2rem;
     user-select: none;
     -webkit-text-stroke: 2px;
     letter-spacing: 1px;

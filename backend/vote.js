@@ -1,13 +1,118 @@
 const WebSocket = require("ws");
 const uuidv4 = require("uuid/v4");
 const utils = require("./lunch_parser/utils");
+const moment = require("moment");
+
+// The current voting session.
+let vote_session = {};
+
+// Registered votes.
 let votes = [];
+
+// Registered uids.
 const uids = [];
+
+// The WebSocket server.
 let wss;
+
+// Global timer used to throttle WebSocket broadcasts.
 let broadcast_timeout;
+
+// Check if the current voting session is active.
+const isVotingActive = () => {
+	const active = vote_session.locks_at && !moment().isAfter(moment(vote_session.locks_at));
+	console.log("is voting active", active); // debug
+	return active;
+};
+
+// Check if the voting has locked.
+const isVotingLocked = () => {
+	const locked = !hasVotingEnded() && vote_session.locks_at && moment().isAfter(moment(vote_session.locks_at));
+	console.log("is voting locked", locked); // debug
+	return locked;
+};
+
+// Check if the voting has ended.
+const hasVotingEnded = () => {
+	const ended = vote_session.ends_at && moment().isAfter(moment(vote_session.ends_at));
+	console.log("has voting ended", ended); // debug
+	return ended;
+};
+
+// Lock the current voting session.
+const lockVotingSession = () => {
+	console.log("lock voting session"); // debug
+	broadcastVotes();
+};
+
+// End the current voting session.
+const endVotingSession = () => {
+	console.log("end voting session"); // debug
+	// Reset the votes.
+	resetVotes();
+
+	// Broadcast votes to reset the client votes.
+	broadcastVotes();
+};
+
+// Start a voting session.
+const startVotingSession = () => {
+	resetVotes();
+
+	// Voting session parameters.
+	const locks_after = 10;
+	const ends_after = 20;
+
+	vote_session = {
+		started_at: moment().format(),
+		locks_at: moment().add(locks_after, "seconds").format(),
+		ends_at: moment().add(ends_after, "seconds").format()
+	};
+
+	// Set timeout to lock the voting session.
+	setTimeout(() => {
+		lockVotingSession();
+	}, locks_after * 1000);
+
+	// Set timeout to end the voting session.
+	setTimeout(() => {
+		endVotingSession();
+	}, ends_after * 1000);
+
+	console.log("start voting session", vote_session); // debug
+
+	// Broadcast voting session.
+	wss.clients.forEach(client => {
+		if (client.readyState === WebSocket.OPEN) {
+			client.send(
+				JSON.stringify({ 
+					vote_session: {
+						started_at: vote_session.started_at,
+						locks_at: vote_session.locks_at,
+						ends_at: vote_session.ends_at,
+						timestamp: moment().format()
+					} 
+				})
+			);
+		}
+	});
+};
+
+// Reset votes and scores.
+const resetVotes = () => {
+	console.log("reset votes before", votes); // debug
+	votes = [];
+	console.log("reset votes after", votes); // debug
+};
 
 // Vote a restaurant.
 const vote = (message, ws) => {
+	// Check if the voting is locked.
+	if (isVotingLocked()) return;
+
+	if (!isVotingActive() || hasVotingEnded()) startVotingSession();
+
+	// Check that the score is a valid number.
 	if (isNaN(message.score)) return;
 
 	// Ensure that the message score is 1 or -1.
@@ -53,7 +158,7 @@ const vote = (message, ws) => {
 	// Mark that the client has voted.
 	ws.voted = true;
 
-	broadcastVotes();
+	//broadcastVotes();
 };
 
 // Remove a vote.
@@ -69,7 +174,24 @@ const removeVote = (message, ws) => {
 	// Remove the vote.
 	votes.splice(i, 1);
 
-	broadcastVotes();
+	//broadcastVotes();
+};
+
+// Find client's existing votes and send them to the client.
+const sendClientVotes = uid => {
+	// Find if there are votes for the uid and send them back to the client.
+	const existing_votes = votes.filter(vote => vote.uid === uid);
+	console.log("existing votes", existing_votes); // debug
+
+	// Replace the WebSocket client uid.
+	if (!existing_votes.length) return;
+
+	const ws = Array.from(wss.clients).find(client => client.uid === uid);
+	console.log("ws", ws); // debug
+
+	ws.voted = true;
+
+	ws.send(JSON.stringify({ existing_votes }));
 };
 
 // Replace UID.
@@ -98,15 +220,7 @@ const replaceUid = (message, ws) => {
 	console.log("uids", uids); // debug
 
 	// Find if there are votes for the uid and send them back to the client.
-	const existing_votes = votes.filter(vote => vote.uid === message.existing_uid);
-	console.log("existing votes", existing_votes); // debug
-
-	// Replace the WebSocket client uid.
-	if (!existing_votes.length) return;
-
-	ws.voted = true;
-
-	ws.send(JSON.stringify({ existing_votes }));
+	sendClientVotes(ws.uid);
 };
 
 // Parse scores.
@@ -125,16 +239,11 @@ const parseScores = () => {
 	return scores;
 };
 
-// Reset votes and scores.
-const resetVotes = () => {
-	console.log("reset votes before", votes); // debug
-	votes = [];
-	console.log("reset votes after", votes); // debug
-};
-
 // Get the current scores.
 const getScores = (message, ws) => {
 	console.log("get scores", message); // debug
+
+	if (isVotingActive()) return;
 
 	// Parse scores.
 	const scores = parseScores();
@@ -194,14 +303,14 @@ const vote_obj = {
 			});
 
 			// Generate a new uid.
-			const uid = ws.uid = uuidv4();
+			ws.uid = uuidv4();
 			console.log("WebSocket connected to the server!", ws.uid);
 
-			uids.push(uid);
+			uids.push(ws.uid);
 			console.log("uids", uids);
 
 			// Send the user's uid.
-			ws.send(JSON.stringify({ uid }));
+			ws.send(JSON.stringify({ uid: ws.uid }));
 		});
 
 		wss.on("error", e => {
