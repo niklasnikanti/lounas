@@ -1,4 +1,5 @@
 const utils = require("./utils");
+const moment = require("moment");
 
 const isohuvila = {
 	// Get Iso-Huvila lunch.
@@ -7,11 +8,22 @@ const isohuvila = {
 		const result = await utils.fetch(this, "https://verkatehdas.fi/ravintola/lounas");
 		if (result.cached) return this.restaurants;
 
+		// Get the parent lunch element.
 		const lunch_element = result.page.querySelector(".lunch-browser");
 
+		// Get lunches.
 		const lunches = Array.from(lunch_element.querySelectorAll("table"));
-		// Remove the first element because it is the current day lunch already in the array.
-		lunches.shift();
+
+		// Remove excess lunches.
+		while (lunches.length > 5) {
+			lunches.shift();
+		}
+
+		// Get dates.
+		const dates = Array.from(lunch_element.querySelectorAll("h3.date"));
+
+		// Current year argument.
+		const current_year = moment().year();
 
 		const restaurants = this.restaurants = {
 			"Iso-Huvila": lunches.map((lunch, i) => {
@@ -28,12 +40,14 @@ const isohuvila = {
 					};
 				});
 
+				const date = `${ utils.clearHtml(dates[i].innerHTML.trim()).match(/(\d+|\.)+/)[0] }${ current_year }`;
 				return {
-					date: utils.getDate(i),
+					date: utils.parseDate(date, "DD.MM.YYYY"),
 					dishes
 				}
 			})
 		};
+		console.log("Iso-Huvila lunches", restaurants); // debug
 
 		// Parse the dishes.
 		return restaurants;

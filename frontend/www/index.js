@@ -415,7 +415,10 @@ const renderDay = d => {
 	selected_day = days.find(day => day.date === d);
 
 	if (!selected_day) {
-		if (moment(d).isAfter(moment(days[days.length - 1]))) {
+		const date_format = "DD.MM.YYYY";
+
+		// Select the last day if today is after the last day in the week days.
+		if (moment(d, date_format).isAfter(moment(days[days.length - 1].date, date_format))) {
 			selected_day = days[days.length - 1];
 		} else {
 			selected_day = days[0];
