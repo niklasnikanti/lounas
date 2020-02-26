@@ -29,6 +29,8 @@ let ws;
 
 let votes = [];
 
+let vote_session;
+
 // Open a WebSocket connection.
 class WS {
 	constructor() {
@@ -134,10 +136,10 @@ class WS {
 
 			// Server is sending the current vote session.
 			if (data.vote_session) {
-				const { vote_session } = data;
+				vote_session = data.vote_session;
 				console.log("vote session", vote_session); // debug
 
-
+				createTimer(vote_session);
 			}
 		};
 
@@ -423,6 +425,46 @@ class Score extends React.Component {
 class Timer extends React.Component {
 	constructor(props) {
 		super(props);
+
+		const { vote_session } = this.props;
+		console.log("vote session", vote_session); // debug
+
+		const lock_duration = moment(vote_session.locks_at).diff(moment(vote_session.started_at));
+		console.log("lock duration", lock_duration); // debug
+
+		const end_duration = moment(vote_session.ends_at).diff(moment(vote_session.started_at));
+		console.log("end duration", end_duration); // debug
+
+		const current_time = moment(vote_session.locks_at).diff(moment(vote_session.timestamp));
+		console.log("current time", current_time);
+
+		this.state = {
+			last_update: moment(),
+			left: current_time,
+			total: lock_duration
+		};
+
+
+		this.update = this.update.bind(this);
+
+		this.update();
+	}
+
+	update() {
+		const diff = moment().diff(this.state.last_update);
+		console.log("left", this.state.left); // debug
+
+		this.setState({ 
+			last_update: moment(),
+			left: this.state.left - diff
+	 	});
+
+		if (this.state.left > 0) requestAnimationFrame(this.update);
+		else {
+			this.setState({
+				left: 0
+			});
+		}
 	}
 
 	render() {
@@ -431,13 +473,31 @@ class Timer extends React.Component {
 			{
 				className: "timer",
 				style: {
-					width: `${ this.props.left / this.props.total }%`
+					width: `${ this.state.left / this.state.total * 100 }%`
 				}
 			},
 			""
 		);
 	}
 }
+
+// Create a vote timer.
+const createTimer = vote_session => {
+	console.log("create timer", vote_session); // debug
+
+	const timer = document.documentElement.querySelector(".timer-container");
+	console.log("timer", timer); // debug
+
+	ReactDOM.render(
+		createElement(
+			Timer,
+			{
+				vote_session
+			}
+		),
+		timer
+	);
+};
 
 // Update the voting session timer.
 const updateTimer = () => {

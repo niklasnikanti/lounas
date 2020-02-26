@@ -193,6 +193,19 @@ body {
     margin-bottom: 2px;
 }
 
+.timer-container {
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    height: 4px;
+}
+
+.timer {
+    width: 100%;
+    height: 100%;
+    background-color: var(--theme-color);
+}
+
 @media screen and (max-width: 1200px) {
 	.restaurants {
 		margin: 32px;
