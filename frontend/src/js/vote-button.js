@@ -2,7 +2,9 @@
 
 import React from "react";
 
-// Vote button for a restaurant.
+/**
+ * Vote button for a restaurant.
+ */
 export class VoteButton extends React.Component {
 	constructor(props) {
 		super(props);

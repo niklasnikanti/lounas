@@ -8,15 +8,11 @@ import React from "react";
 import moment from "moment";
 import { today, selected_day } from "../";
 
-// export const today = moment().format("DD.MM.YYYY");
-
-// export let selected_day = {
-// 	date: today
-// }; 
-
-// Restaurant parent element
 export const react_restaurants = [];
 
+/**
+ * Restaurant parent element
+ */
 export class Restaurant extends React.Component {
 	constructor(props) {
 		super(props);

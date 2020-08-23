@@ -4,7 +4,9 @@ import { react_restaurants } from "./restaurant";
 
 let votes = [];
 
-// Open a WebSocket connection.
+/**
+ * Open a WebSocket connection.
+ */
 export class WS {
 	constructor() {
 		this.base_url = window.origin;

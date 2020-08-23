@@ -2,7 +2,9 @@
 
 import React from "react";
 
-// Score for the restaurant.
+/**
+ * Score for the restaurant.
+ */
 export class Score extends React.Component {
 	constructor(props) {
 		super(props);
