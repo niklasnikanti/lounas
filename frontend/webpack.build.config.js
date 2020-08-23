@@ -9,6 +9,7 @@ module.exports = {
 		path: path.resolve(__dirname, "www")
 	},
 	mode: "production",
+	watch: false,
 	plugins: [
 		new CleanWebpackPlugin(),
 		new CopyPlugin({
