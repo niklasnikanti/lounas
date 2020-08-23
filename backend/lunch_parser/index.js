@@ -11,7 +11,7 @@ const vote = require("../vote");
 const lunch_parsers = [
 	require("./reska"),
 	require("./isohuvila"),
-	require("./palmia"),
+	// require("./palmia"),
 	require("./bora"),
 	require("./verka")
 ];
@@ -43,6 +43,7 @@ const lunchParser = {
 		// Pad empty lunches.
 		Object.keys(lunches.data).forEach(lunch => {
 			const restaurant = lunches.data[lunch];
+			console.log("restaurant", lunch);
 			
 			for (let i = 0; i < 5; i++) {
 				const date = utils.getDate(i);
