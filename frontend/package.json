@@ -11,14 +11,14 @@
   "author": "Niklas Nikanti",
   "license": "ISC",
   "dependencies": {
-    "moment": "^2.24.0",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "moment": "~2.24.0",
+    "react": "~16.13.1",
+    "react-dom": "~16.13.1"
   },
   "devDependencies": {
-    "clean-webpack-plugin": "^3.0.0",
-    "copy-webpack-plugin": "^6.0.3",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "clean-webpack-plugin": "~3.0.0",
+    "copy-webpack-plugin": "~6.0.3",
+    "webpack": "~4.44.1",
+    "webpack-cli": "~3.3.12"
   }
 }
