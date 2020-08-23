@@ -6,7 +6,7 @@ const sanitizeHtml = require("sanitize-html");
 const moment = require("moment");
 	  moment.locale("fi");
 const date_format = "DD.MM.YYYY";
-const restaurants = ["Iso-Huvila", "Palmia", "Verka", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
+const restaurants = ["Iso-Huvila", /*"Palmia",*/ "Verka", "Hällä", "Maja", "Popino", "Pannu", "Bora"];
 
 const utils = {
 	cached_hours: 8,
