@@ -11,7 +11,7 @@
   "author": "Niklas Nikanti",
   "license": "ISC",
   "dependencies": {
-    "moment": "~2.24.0",
+    "moment": "~2.29.2",
     "react": "~16.13.1",
     "react-dom": "~16.13.1"
   },
